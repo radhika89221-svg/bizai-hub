@@ -1,4 +1,4 @@
-from dotenv import load_dotenv
+from dotenv import load_doten
 from flask import Flask, render_template, request, jsonify
 from textblob import TextBlob
 import requests
@@ -11,7 +11,10 @@ app = Flask(__name__)
 # ============================================
 # YOUR API KEY
 # ============================================
-OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY", "")
+OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY")
+
+if not OPENROUTER_KEY:
+    raise ValueError("OPENROUTER_KEY is not set")
 
 
 def ask_ai(prompt):
