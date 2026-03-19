@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Predictor - BizGenius AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a; color: #ffffff; min-height: 100vh;
+        }
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 50px; background: rgba(10,10,10,0.95); border-bottom: 1px solid #222;
+        }
+        .logo {
+            font-size: 24px; font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-links { display: flex; list-style: none; gap: 30px; }
+        .nav-links a { color: #ccc; text-decoration: none; }
+        .nav-links a:hover { color: #667eea; }
+
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .page-title { text-align: center; margin-bottom: 40px; }
+        .page-title h1 {
+            font-size: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .page-title p { color: #888; font-size: 18px; }
+
+        .form-section {
+            background: #111; border: 1px solid #222;
+            border-radius: 20px; padding: 40px; margin-bottom: 30px;
+        }
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; margin-bottom: 10px; color: #ccc; font-size: 16px; }
+
+        .sales-inputs {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 15px; margin-bottom: 20px;
+        }
+        .month-input {
+            background: #1a1a1a; border: 1px solid #333;
+            border-radius: 12px; padding: 15px; text-align: center;
+        }
+        .month-input label {
+            display: block; color: #888; font-size: 12px; margin-bottom: 8px;
+        }
+        .month-input input {
+            width: 100%; padding: 10px; background: #0a0a0a;
+            border: 1px solid #444; border-radius: 8px;
+            color: #fff; font-size: 16px; text-align: center; outline: none;
+        }
+        .month-input input:focus { border-color: #667eea; }
+
+        .sample-data {
+            display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;
+        }
+        .sample-btn {
+            padding: 10px 18px; background: #111;
+            border: 1px solid #333; border-radius: 20px;
+            color: #ccc; font-size: 13px; cursor: pointer;
+        }
+        .sample-btn:hover { border-color: #667eea; color: #667eea; }
+
+        .generate-btn {
+            width: 100%; padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border: none; border-radius: 12px;
+            font-size: 18px; font-weight: 600; cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .generate-btn:hover { transform: translateY(-2px); }
+        .generate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .loading { display: none; text-align: center; padding: 30px; }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #333;
+            border-top: 4px solid #667eea; border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .result-section {
+            display: none; background: #111; border: 1px solid #222;
+            border-radius: 20px; padding: 40px; margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: #1a1a1a; border: 1px solid #333;
+            border-radius: 12px; padding: 25px; margin-bottom: 25px;
+        }
+        .chart-title {
+            color: #667eea; font-size: 18px; font-weight: 600;
+            margin-bottom: 20px; text-align: center;
+        }
+        .chart-bars {
+            display: flex; align-items: flex-end; gap: 8px;
+            height: 200px; padding-top: 20px;
+        }
+        .bar-item { flex: 1; text-align: center; }
+        .bar {
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 5px 5px 0 0; margin: 0 auto;
+            width: 80%; min-height: 5px; transition: height 1s ease;
+        }
+        .bar-label { color: #888; font-size: 11px; margin-top: 8px; }
+        .bar-value { color: #667eea; font-size: 12px; margin-bottom: 5px; font-weight: 600; }
+
+        .summary-cards {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 15px; margin-bottom: 25px;
+        }
+        .summary-card {
+            background: #1a1a1a; border: 1px solid #333;
+            border-radius: 12px; padding: 20px; text-align: center;
+        }
+        .summary-card .s-label { color: #888; font-size: 13px; margin-bottom: 8px; }
+        .summary-card .s-value { color: #667eea; font-size: 24px; font-weight: bold; }
+
+        .prediction-text {
+            background: #1a1a1a; border: 1px solid #333;
+            border-radius: 12px; padding: 25px; line-height: 1.8;
+            color: #ddd; white-space: pre-wrap;
+        }
+        .prediction-text h4 { color: #667eea; margin-bottom: 15px; font-size: 18px; }
+
+        .back-btn { display: inline-block; margin-bottom: 20px; color: #667eea; text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .sales-inputs { grid-template-columns: repeat(2, 1fr); }
+            .summary-cards { grid-template-columns: 1fr; }
+            .navbar { padding: 15px 20px; }
+            .page-title h1 { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">🚀 BizGenius AI</a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/content-writer">Content Writer</a></li>
+            <li><a href="/chatbot">Chatbot</a></li>
+            <li><a href="/sentiment">Sentiment</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <a href="/" class="back-btn">← Back to Home</a>
+
+        <div class="page-title">
+            <h1>📊 AI Sales Predictor</h1>
+            <p>Enter your monthly sales data and let AI predict future trends</p>
+        </div>
+
+        <div class="form-section">
+            <p style="color:#888; margin-bottom:15px;">Try sample data:</p>
+            <div class="sample-data">
+                <button class="sample-btn" onclick="loadSample('growing')">📈 Growing Business</button>
+                <button class="sample-btn" onclick="loadSample('declining')">📉 Declining Business</button>
+                <button class="sample-btn" onclick="loadSample('seasonal')">🔄 Seasonal Business</button>
+            </div>
+
+            <div class="form-group">
+                <label>📊 Enter Monthly Sales (Last 8 Months) in $</label>
+                <div class="sales-inputs" id="salesInputs">
+                    <div class="month-input">
+                        <label>Month 1</label>
+                        <input type="number" id="month1" placeholder="5000">
+                    </div>
+                    <div class="month-input">
+                        <label>Month 2</label>
+                        <input type="number" id="month2" placeholder="5500">
+                    </div>
+                    <div class="month-input">
+                        <label>Month 3</label>
+                        <input type="number" id="month3" placeholder="6200">
+                    </div>
+                    <div class="month-input">
+                        <label>Month 4</label>
+                        <input type="number" id="month4" placeholder="5800">
+                    </div>
+                    <div class="month-input">
+                        <label>Month 5</label>
+                        <input type="number" id="month5" placeholder="7000">
+                    </div>
+                    <div class="month-input">
+                        <label>Month 6</label>
+                        <input type="number" id="month6" placeholder="7500">
+                    </div>
+                    <div class="month-input">
+                        <label>Month 7</label>
+                        <input type="number" id="month7" placeholder="8000">
+                    </div>
+                    <div class="month-input">
+                        <label>Month 8</label>
+                        <input type="number" id="month8" placeholder="8500">
+                    </div>
+                </div>
+            </div>
+
+            <button class="generate-btn" id="predictBtn" onclick="predictSales()">
+                🔮 Predict Future Sales
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="color:#888;">AI is analyzing your sales data...</p>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <h3 style="color:#667eea; text-align:center; margin-bottom:25px;">
+                📊 Sales Analysis & Prediction
+            </h3>
+
+            <!-- Summary Cards -->
+            <div class="summary-cards" id="summaryCards">
+                <div class="summary-card">
+                    <div class="s-label">Total Sales</div>
+                    <div class="s-value" id="totalSales">-</div>
+                </div>
+                <div class="summary-card">
+                    <div class="s-label">Average Monthly</div>
+                    <div class="s-value" id="avgSales">-</div>
+                </div>
+                <div class="summary-card">
+                    <div class="s-label">Growth Rate</div>
+                    <div class="s-value" id="growthRate">-</div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="chart-container">
+                <div class="chart-title">📈 Monthly Sales Visualization</div>
+                <div class="chart-bars" id="chartBars"></div>
+            </div>
+
+            <!-- AI Prediction -->
+            <div class="prediction-text">
+                <h4>🤖 AI Analysis & Predictions</h4>
+                <div id="predictionResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadSample(type) {
+            const samples = {
+                growing: [5000, 5500, 6200, 6800, 7500, 8200, 9000, 9800],
+                declining: [12000, 11200, 10500, 9800, 9000, 8200, 7500, 7000],
+                seasonal: [8000, 6000, 5000, 7000, 11000, 13000, 9000, 6500]
+            };
+
+            const data = samples[type];
+            for (let i = 1; i <= 8; i++) {
+                document.getElementById('month' + i).value = data[i - 1];
+            }
+        }
+
+        async function predictSales() {
+            // Collect data
+            const salesData = [];
+            for (let i = 1; i <= 8; i++) {
+                const val = document.getElementById('month' + i).value;
+                if (!val) {
+                    alert('Please fill all 8 months of sales data!');
+                    return;
+                }
+                salesData.push(parseInt(val));
+            }
+
+            // Show loading
+            document.getElementById('predictBtn').disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/predict-sales', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sales_data: salesData.join(', ') })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Calculate stats
+                    const total = salesData.reduce((a, b) => a + b, 0);
+                    const avg = Math.round(total / salesData.length);
+                    const growth = ((salesData[7] - salesData[0]) / salesData[0] * 100).toFixed(1);
+
+                    document.getElementById('totalSales').textContent = '$' + total.toLocaleString();
+                    document.getElementById('avgSales').textContent = '$' + avg.toLocaleString();
+                    document.getElementById('growthRate').textContent = growth + '%';
+                    document.getElementById('growthRate').style.color =
+                        growth >= 0 ? '#4CAF50' : '#f44336';
+
+                    // Build chart
+                    const maxVal = Math.max(...salesData);
+                    const chartHTML = salesData.map((val, i) => {
+                        const height = (val / maxVal * 160);
+                        return `
+                            <div class="bar-item">
+                                <div class="bar-value">$${(val/1000).toFixed(1)}k</div>
+                                <div class="bar" style="height: ${height}px;"></div>
+                                <div class="bar-label">M${i + 1}</div>
+                            </div>
+                        `;
+                    }).join('');
+                    document.getElementById('chartBars').innerHTML = chartHTML;
+
+                    // Show AI analysis
+                    document.getElementById('predictionResult').textContent = data.result;
+                    document.getElementById('resultSection').style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('predictBtn').disabled = false;
+        }
+    </script>
+
+</body>
+</html>

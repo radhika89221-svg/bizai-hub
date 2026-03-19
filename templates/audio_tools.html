@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Audio Tools - BizGenius AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a; color: #ffffff; min-height: 100vh;
+        }
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 50px; background: rgba(10,10,10,0.95); border-bottom: 1px solid #222;
+        }
+        .logo {
+            font-size: 24px; font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-links { display: flex; list-style: none; gap: 30px; }
+        .nav-links a { color: #ccc; text-decoration: none; }
+        .nav-links a:hover { color: #667eea; }
+
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .page-title { text-align: center; margin-bottom: 40px; }
+        .page-title h1 {
+            font-size: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .page-title p { color: #888; font-size: 18px; }
+
+        .tools-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr);
+            gap: 25px; margin-bottom: 30px;
+        }
+
+        .tool-card {
+            background: #111; border: 1px solid #222;
+            border-radius: 20px; padding: 30px;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        .tool-card:hover { transform: translateY(-5px); border-color: #667eea; }
+        .tool-card .icon { font-size: 40px; margin-bottom: 15px; }
+        .tool-card h3 { color: #667eea; margin-bottom: 10px; font-size: 20px; }
+        .tool-card p { color: #888; line-height: 1.6; margin-bottom: 20px; font-size: 14px; }
+
+        .tool-input {
+            width: 100%; padding: 12px; background: #1a1a1a;
+            border: 1px solid #333; border-radius: 10px;
+            color: #fff; font-size: 14px; outline: none;
+            margin-bottom: 15px; resize: vertical;
+        }
+        .tool-input:focus { border-color: #667eea; }
+
+        .tool-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border: none; border-radius: 10px;
+            font-size: 16px; cursor: pointer; transition: transform 0.3s;
+        }
+        .tool-btn:hover { transform: translateY(-2px); }
+        .tool-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .tool-btn-stop {
+            width: 100%; padding: 14px;
+            background: #333; color: white; border: none;
+            border-radius: 10px; font-size: 16px; cursor: pointer;
+            margin-top: 10px; transition: background 0.3s;
+        }
+        .tool-btn-stop:hover { background: #555; }
+
+        .tool-result {
+            display: none; margin-top: 15px; padding: 15px;
+            background: #1a1a1a; border: 1px solid #333;
+            border-radius: 10px; color: #ddd; font-size: 14px;
+            line-height: 1.6; white-space: pre-wrap; max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .loading-small {
+            display: none; text-align: center; padding: 15px; color: #888;
+        }
+        .loading-small .mini-spinner {
+            width: 24px; height: 24px; border: 3px solid #333;
+            border-top: 3px solid #667eea; border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block; vertical-align: middle; margin-right: 10px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .back-btn { display: inline-block; margin-bottom: 20px; color: #667eea; text-decoration: none; }
+
+        .copy-small {
+            margin-top: 10px; padding: 8px 16px;
+            background: transparent; border: 1px solid #667eea;
+            color: #667eea; border-radius: 6px; cursor: pointer;
+            font-size: 12px; transition: all 0.3s;
+        }
+        .copy-small:hover { background: #667eea; color: white; }
+
+        @media (max-width: 768px) {
+            .tools-grid { grid-template-columns: 1fr; }
+            .navbar { padding: 15px 20px; }
+            .page-title h1 { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">🚀 BizGenius AI</a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/content-writer">Content Writer</a></li>
+            <li><a href="/chatbot">Chatbot</a></li>
+            <li><a href="/sentiment">Sentiment</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <a href="/" class="back-btn">← Back to Home</a>
+
+        <div class="page-title">
+            <h1>🎙️ AI Audio Tools</h1>
+            <p>Text-to-Speech, Speech-to-Text, and AI content generation tools</p>
+        </div>
+
+        <div class="tools-grid">
+            <!-- TEXT TO SPEECH -->
+            <div class="tool-card">
+                <div class="icon">🔊</div>
+                <h3>Text to Speech</h3>
+                <p>Convert any text into natural speech using your browser's TTS engine.</p>
+                <textarea class="tool-input" id="ttsText" rows="4"
+                    placeholder="Type or paste text to convert to speech...">Welcome to BizGenius AI, your all-in-one business toolkit powered by artificial intelligence.</textarea>
+                <select class="tool-input" id="ttsVoice" style="height:auto;"></select>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+                    <span style="color:#888; font-size:13px;">Speed:</span>
+                    <input type="range" id="ttsSpeed" min="0.5" max="2" step="0.1" value="1"
+                        style="flex:1;">
+                    <span id="speedValue" style="color:#667eea; font-size:13px;">1.0x</span>
+                </div>
+                <button class="tool-btn" onclick="speakText()">🔊 Speak</button>
+                <button class="tool-btn-stop" onclick="stopSpeech()">⏹️ Stop</button>
+            </div>
+
+            <!-- SPEECH TO TEXT -->
+            <div class="tool-card">
+                <div class="icon">🎤</div>
+                <h3>Speech to Text</h3>
+                <p>Speak into your microphone and convert voice to text instantly.</p>
+                <div class="tool-result" id="sttResult" style="display:block; min-height:120px;">
+                    🎤 Click the button below and start speaking...
+                </div>
+                <button class="tool-btn" id="sttBtn" onclick="toggleListening()">
+                    🎤 Start Listening
+                </button>
+                <button class="copy-small" onclick="copyText('sttResult')">📋 Copy Text</button>
+            </div>
+
+            <!-- PODCAST SCRIPT -->
+            <div class="tool-card">
+                <div class="icon">🎧</div>
+                <h3>Podcast Script Generator</h3>
+                <p>Generate a professional podcast script on any business topic.</p>
+                <input class="tool-input" id="podcastTopic" type="text"
+                    placeholder="e.g., Digital Marketing Trends 2025">
+                <button class="tool-btn" id="podcastBtn" onclick="generatePodcast()">🎧 Generate Script</button>
+                <div class="loading-small" id="podcastLoading">
+                    <span class="mini-spinner"></span> AI is writing your script...
+                </div>
+                <div class="tool-result" id="podcastResult"></div>
+                <button class="copy-small" id="podcastCopy" style="display:none;" onclick="copyText('podcastResult')">📋 Copy Script</button>
+            </div>
+
+            <!-- PRESENTATION NOTES -->
+            <div class="tool-card">
+                <div class="icon">📢</div>
+                <h3>Presentation Speaker Notes</h3>
+                <p>Generate speaker notes for your business presentation.</p>
+                <input class="tool-input" id="presentationTopic" type="text"
+                    placeholder="e.g., Q4 Sales Report Presentation">
+                <button class="tool-btn" id="notesBtn" onclick="generateNotes()">📢 Generate Notes</button>
+                <div class="loading-small" id="notesLoading">
+                    <span class="mini-spinner"></span> AI is writing your notes...
+                </div>
+                <div class="tool-result" id="notesResult"></div>
+                <button class="copy-small" id="notesCopy" style="display:none;" onclick="copyText('notesResult')">📋 Copy Notes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== TEXT TO SPEECH =====
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            const select = document.getElementById('ttsVoice');
+            select.innerHTML = '';
+            voices.forEach((voice, i) => {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                if (voice.lang.startsWith('en')) option.selected = (select.options.length === 0);
+                select.appendChild(option);
+            });
+        }
+
+        speechSynthesis.onvoiceschanged = loadVoices;
+        window.addEventListener('load', () => setTimeout(loadVoices, 500));
+
+        document.getElementById('ttsSpeed').addEventListener('input', (e) => {
+            document.getElementById('speedValue').textContent = e.target.value + 'x';
+        });
+
+        function speakText() {
+            const text = document.getElementById('ttsText').value;
+            if (!text) { alert('Enter text first!'); return; }
+            speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = speechSynthesis.getVoices();
+            const voiceIndex = document.getElementById('ttsVoice').value;
+            if (voices[voiceIndex]) utterance.voice = voices[voiceIndex];
+            utterance.rate = parseFloat(document.getElementById('ttsSpeed').value);
+            speechSynthesis.speak(utterance);
+        }
+
+        function stopSpeech() { speechSynthesis.cancel(); }
+
+        // ===== SPEECH TO TEXT =====
+        let recognition = null;
+        let isListening = false;
+
+        function toggleListening() {
+            if (isListening) {
+                if (recognition) recognition.stop();
+                return;
+            }
+
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('Speech recognition not supported. Please use Google Chrome.');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            const btn = document.getElementById('sttBtn');
+            btn.textContent = '🔴 Stop Listening';
+            btn.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
+            isListening = true;
+
+            let finalTranscript = '';
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript + ' ';
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                document.getElementById('sttResult').textContent =
+                    finalTranscript + (interimTranscript ? '...' + interimTranscript : '');
+            };
+
+            recognition.onend = () => {
+                btn.textContent = '🎤 Start Listening';
+                btn.style.background = '';
+                isListening = false;
+            };
+
+            recognition.onerror = (event) => {
+                console.log('Speech error:', event.error);
+                btn.textContent = '🎤 Start Listening';
+                btn.style.background = '';
+                isListening = false;
+            };
+
+            recognition.start();
+        }
+
+        // ===== AI CONTENT GENERATION (with retry) =====
+        async function callAI(message, maxRetries = 2) {
+            for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message })
+                    });
+                    const data = await response.json();
+
+                    if (data.success && !data.result.includes('all AI models are busy')) {
+                        return data.result;
+                    }
+
+                    if (attempt < maxRetries) {
+                        console.log(`Attempt ${attempt + 1} failed, retrying in 3 seconds...`);
+                        await new Promise(r => setTimeout(r, 3000));
+                    }
+                } catch (e) {
+                    if (attempt < maxRetries) {
+                        await new Promise(r => setTimeout(r, 3000));
+                    }
+                }
+            }
+            return 'AI is temporarily busy. Please wait 30 seconds and try again. This happens with free AI models during high traffic.';
+        }
+
+        // PODCAST SCRIPT
+        async function generatePodcast() {
+            const topic = document.getElementById('podcastTopic').value.trim();
+            if (!topic) { alert('Enter a topic!'); return; }
+
+            document.getElementById('podcastBtn').disabled = true;
+            document.getElementById('podcastLoading').style.display = 'block';
+            document.getElementById('podcastResult').style.display = 'none';
+            document.getElementById('podcastCopy').style.display = 'none';
+
+            const result = await callAI(
+                `Write a professional 2-minute podcast script about: ${topic}. 
+                Include: [INTRO with hook], [MAIN CONTENT with 3 key points], [OUTRO with call to action]. 
+                Make it engaging, conversational, and ready to read aloud.`
+            );
+
+            document.getElementById('podcastResult').textContent = result;
+            document.getElementById('podcastResult').style.display = 'block';
+            document.getElementById('podcastCopy').style.display = 'inline-block';
+            document.getElementById('podcastLoading').style.display = 'none';
+            document.getElementById('podcastBtn').disabled = false;
+        }
+
+        // PRESENTATION NOTES
+        async function generateNotes() {
+            const topic = document.getElementById('presentationTopic').value.trim();
+            if (!topic) { alert('Enter a topic!'); return; }
+
+            document.getElementById('notesBtn').disabled = true;
+            document.getElementById('notesLoading').style.display = 'block';
+            document.getElementById('notesResult').style.display = 'none';
+            document.getElementById('notesCopy').style.display = 'none';
+
+            const result = await callAI(
+                `Generate professional speaker notes for a business presentation about: ${topic}. 
+                Include: Opening statement, 4-5 key talking points with details, 
+                transition phrases, and a strong closing. Make it ready to use.`
+            );
+
+            document.getElementById('notesResult').textContent = result;
+            document.getElementById('notesResult').style.display = 'block';
+            document.getElementById('notesCopy').style.display = 'inline-block';
+            document.getElementById('notesLoading').style.display = 'none';
+            document.getElementById('notesBtn').disabled = false;
+        }
+
+        // COPY TEXT
+        function copyText(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+    </script>
+
+</body>
+</html>

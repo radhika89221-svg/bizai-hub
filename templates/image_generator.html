@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator - BizGenius AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a; color: #ffffff; min-height: 100vh;
+        }
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 50px; background: rgba(10,10,10,0.95); border-bottom: 1px solid #222;
+        }
+        .logo {
+            font-size: 24px; font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-links { display: flex; list-style: none; gap: 30px; }
+        .nav-links a { color: #ccc; text-decoration: none; }
+        .nav-links a:hover { color: #667eea; }
+
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        .page-title { text-align: center; margin-bottom: 40px; }
+        .page-title h1 {
+            font-size: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .page-title p { color: #888; font-size: 18px; }
+
+        .form-section {
+            background: #111; border: 1px solid #222;
+            border-radius: 20px; padding: 40px; margin-bottom: 30px;
+        }
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; margin-bottom: 10px; color: #ccc; font-size: 16px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 15px; background: #1a1a1a;
+            border: 1px solid #333; border-radius: 12px;
+            color: #fff; font-size: 16px; outline: none;
+        }
+        .form-group textarea { height: 100px; resize: vertical; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #667eea;
+        }
+        .form-group select option { background: #1a1a1a; }
+
+        .generate-btn {
+            width: 100%; padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border: none; border-radius: 12px;
+            font-size: 18px; font-weight: 600; cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(102,126,234,0.3); }
+        .generate-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .loading { display: none; text-align: center; padding: 40px; }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid #333;
+            border-top: 4px solid #667eea; border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading p { color: #888; font-size: 16px; }
+        .loading .sub-text { color: #555; font-size: 13px; margin-top: 8px; }
+
+        .result-section {
+            display: none; background: #111; border: 1px solid #222;
+            border-radius: 20px; padding: 40px; margin-bottom: 30px;
+        }
+        .result-section h3 { color: #667eea; margin-bottom: 25px; text-align: center; font-size: 22px; }
+
+        .image-result { text-align: center; margin-bottom: 25px; }
+        .image-result img {
+            max-width: 100%; max-height: 512px; border-radius: 16px;
+            border: 2px solid #333; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .prompt-display {
+            background: #1a1a1a; border: 1px solid #333;
+            border-radius: 12px; padding: 20px; margin-bottom: 20px;
+            color: #aaa; font-size: 14px; line-height: 1.6;
+        }
+        .prompt-display strong { color: #667eea; }
+
+        .action-btns {
+            display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 12px 25px; border-radius: 10px;
+            cursor: pointer; font-size: 15px; font-weight: 500;
+            transition: all 0.3s; border: none;
+        }
+        .btn-download {
+            background: #4CAF50; color: white;
+        }
+        .btn-download:hover { background: #43a047; }
+        .btn-regen {
+            background: transparent; border: 1px solid #667eea !important;
+            color: #667eea;
+        }
+        .btn-regen:hover { background: #667eea; color: white; }
+        .btn-prompt {
+            background: transparent; border: 1px solid #888 !important;
+            color: #888;
+        }
+        .btn-prompt:hover { background: #333; color: white; }
+
+        /* PROMPT RESULT */
+        .prompt-section {
+            display: none; background: #111; border: 1px solid #222;
+            border-radius: 20px; padding: 40px; margin-bottom: 30px;
+        }
+        .prompt-section h3 { color: #667eea; margin-bottom: 20px; }
+        .prompt-content {
+            background: #1a1a1a; border: 1px solid #333;
+            border-radius: 12px; padding: 25px; line-height: 1.8;
+            color: #ddd; white-space: pre-wrap;
+        }
+        .copy-btn {
+            margin-top: 15px; padding: 12px 25px;
+            background: transparent; border: 1px solid #667eea;
+            color: #667eea; border-radius: 8px; cursor: pointer;
+            font-size: 14px; transition: all 0.3s;
+        }
+        .copy-btn:hover { background: #667eea; color: white; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 25px; }
+        .tab {
+            flex: 1; padding: 14px; text-align: center;
+            background: #1a1a1a; border: 1px solid #333;
+            border-radius: 12px; cursor: pointer; color: #888;
+            font-size: 15px; font-weight: 500; transition: all 0.3s;
+        }
+        .tab.active { background: rgba(102,126,234,0.15); border-color: #667eea; color: #667eea; }
+        .tab:hover { border-color: #667eea; color: #ccc; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .info-box {
+            background: #1a1a2e; border: 1px solid #667eea;
+            border-radius: 12px; padding: 20px; margin-bottom: 25px;
+            color: #aaa; font-size: 14px; line-height: 1.6;
+        }
+        .info-box span { color: #667eea; font-weight: bold; }
+
+        .samples { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .sample-btn {
+            padding: 8px 16px; background: #1a1a1a; border: 1px solid #333;
+            border-radius: 20px; color: #aaa; font-size: 13px;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .sample-btn:hover { border-color: #667eea; color: #667eea; }
+
+        .back-btn { display: inline-block; margin-bottom: 20px; color: #667eea; text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 15px 20px; }
+            .page-title h1 { font-size: 28px; }
+            .action-btns { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">🚀 BizGenius AI</a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/content-writer">Content Writer</a></li>
+            <li><a href="/chatbot">Chatbot</a></li>
+            <li><a href="/sentiment">Sentiment</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <a href="/" class="back-btn">← Back to Home</a>
+
+        <div class="page-title">
+            <h1>🖼️ AI Image Generator</h1>
+            <p>Generate real AI images for your business - completely free!</p>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('image')">🎨 Generate Image</div>
+            <div class="tab" onclick="switchTab('prompt')">📝 Generate Prompt</div>
+        </div>
+
+        <!-- TAB 1: IMAGE -->
+        <div class="tab-content active" id="tab-image">
+            <div class="form-section">
+                <p style="color:#888; margin-bottom:12px;">Try these examples:</p>
+                <div class="samples">
+                    <button class="sample-btn" onclick="useSample('A modern minimalist logo for a coffee shop, flat design, white background')">☕ Coffee Logo</button>
+                    <button class="sample-btn" onclick="useSample('Professional social media banner for a tech startup, blue and purple gradient, modern')">🖥️ Tech Banner</button>
+                    <button class="sample-btn" onclick="useSample('Product photo of premium headphones on a dark background, dramatic lighting')">🎧 Product Photo</button>
+                    <button class="sample-btn" onclick="useSample('Business team meeting in modern office, professional, bright lighting')">👥 Office Photo</button>
+                </div>
+
+                <div class="form-group">
+                    <label>🎨 Describe your image</label>
+                    <textarea id="imageDesc"
+                        placeholder="Describe what you want to see... Be specific! Example: A modern coffee shop logo with a coffee cup icon, minimalist style, warm brown colors, white background"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>📐 Image Size</label>
+                    <select id="imageSize">
+                        <option value="512x512">Square (512×512) - Logos, Profile</option>
+                        <option value="768x512">Landscape (768×512) - Banners</option>
+                        <option value="512x768">Portrait (512×768) - Stories, Posters</option>
+                    </select>
+                </div>
+
+                <button class="generate-btn" id="imgBtn" onclick="generateImage()">
+                    🎨 Generate Image
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB 2: PROMPT -->
+        <div class="tab-content" id="tab-prompt">
+            <div class="form-section">
+                <div class="form-group">
+                    <label>🎨 Image Type</label>
+                    <select id="imageType">
+                        <option value="Business Logo">Business Logo</option>
+                        <option value="Social Media Banner">Social Media Banner</option>
+                        <option value="Product Photo">Product Photo</option>
+                        <option value="Website Hero Image">Website Hero Image</option>
+                        <option value="Marketing Poster">Marketing Poster</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>📝 Describe What You Need</label>
+                    <textarea id="promptDesc"
+                        placeholder="e.g., A modern logo for a coffee shop called Bean Brew"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>🎭 Style</label>
+                    <select id="styleType">
+                        <option value="Modern Minimalist">Modern Minimalist</option>
+                        <option value="Professional Corporate">Professional Corporate</option>
+                        <option value="Fun Colorful">Fun Colorful</option>
+                        <option value="Elegant Luxury">Elegant Luxury</option>
+                        <option value="Tech Futuristic">Tech Futuristic</option>
+                    </select>
+                </div>
+                <button class="generate-btn" id="promptBtn" onclick="generatePrompt()">
+                    📝 Generate AI Prompt
+                </button>
+            </div>
+        </div>
+
+        <!-- LOADING -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p id="loadingText">Generating your image...</p>
+            <p class="sub-text" id="loadingSub">This may take 15-30 seconds</p>
+        </div>
+
+        <!-- IMAGE RESULT -->
+        <div class="result-section" id="imageResult">
+            <h3>🎨 Your AI Generated Image</h3>
+            <div class="image-result">
+                <img id="genImage" src="" alt="Generated Image">
+            </div>
+            <div class="prompt-display">
+                <strong>Prompt:</strong> <span id="usedPrompt"></span>
+            </div>
+            <div class="action-btns">
+                <button class="action-btn btn-download" onclick="downloadImg()">💾 Download Image</button>
+                <button class="action-btn btn-regen" onclick="regenImage()">🔄 Generate Again</button>
+            </div>
+        </div>
+
+        <!-- PROMPT RESULT -->
+        <div class="prompt-section" id="promptResult">
+            <h3>📝 Generated Prompt</h3>
+            <div class="prompt-content" id="promptText"></div>
+            <button class="copy-btn" onclick="copyPrompt()">📋 Copy Prompt</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPrompt = '';
+        let currentImageUrl = '';
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            if (tab === 'image') {
+                document.querySelectorAll('.tab')[0].classList.add('active');
+                document.getElementById('tab-image').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab')[1].classList.add('active');
+                document.getElementById('tab-prompt').classList.add('active');
+            }
+        }
+
+        function useSample(text) {
+            document.getElementById('imageDesc').value = text;
+        }
+
+        // ===== GENERATE IMAGE =====
+        async function generateImage() {
+            const desc = document.getElementById('imageDesc').value.trim();
+            if (!desc) { alert('Please describe what you want!'); return; }
+
+            const size = document.getElementById('imageSize').value;
+            const [w, h] = size.split('x');
+
+            currentPrompt = desc;
+
+            // Show loading
+            document.getElementById('imgBtn').disabled = true;
+            document.getElementById('imgBtn').textContent = '⏳ Generating...';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loadingText').textContent = 'AI is creating your image...';
+            document.getElementById('loadingSub').textContent = 'Trying multiple AI services (15-30 sec)';
+            document.getElementById('imageResult').style.display = 'none';
+            document.getElementById('promptResult').style.display = 'none';
+
+            // Try to generate using backend
+            try {
+                const response = await fetch('/api/generate-real-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: desc,
+                        width: parseInt(w),
+                        height: parseInt(h)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('genImage').src = data.image_url;
+                    document.getElementById('usedPrompt').textContent = desc;
+                    currentImageUrl = data.image_url;
+                    document.getElementById('imageResult').style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error + '\n\nTip: Try a simpler, shorter description.');
+                }
+            } catch (error) {
+                alert('Connection error: ' + error.message);
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('imgBtn').disabled = false;
+            document.getElementById('imgBtn').textContent = '🎨 Generate Image';
+        }
+
+        function regenImage() {
+            generateImage();
+        }
+
+        function downloadImg() {
+            if (!currentImageUrl) return;
+            const link = document.createElement('a');
+            link.href = currentImageUrl;
+            link.download = 'bizgenius-image.png';
+            link.target = '_blank';
+            link.click();
+        }
+
+        // ===== GENERATE PROMPT =====
+        async function generatePrompt() {
+            const imageType = document.getElementById('imageType').value;
+            const description = document.getElementById('promptDesc').value.trim();
+            const style = document.getElementById('styleType').value;
+            if (!description) { alert('Please describe what you need!'); return; }
+
+            document.getElementById('promptBtn').disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loadingText').textContent = 'AI is writing your prompt...';
+            document.getElementById('loadingSub').textContent = '';
+            document.getElementById('imageResult').style.display = 'none';
+            document.getElementById('promptResult').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/generate-image-prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        description: `${imageType}: ${description}. Style: ${style}`
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('promptText').textContent = data.result;
+                    document.getElementById('promptResult').style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('promptBtn').disabled = false;
+        }
+
+        function copyPrompt() {
+            const text = document.getElementById('promptText').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => btn.textContent = '📋 Copy Prompt', 2000);
+            });
+        }
+    </script>
+
+</body>
+</html>

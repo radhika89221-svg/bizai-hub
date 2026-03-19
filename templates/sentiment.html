@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analyzer - BizGenius AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 1px solid #222;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-links { display: flex; list-style: none; gap: 30px; }
+        .nav-links a { color: #ccc; text-decoration: none; transition: color 0.3s; }
+        .nav-links a:hover { color: #667eea; }
+
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+
+        .page-title { text-align: center; margin-bottom: 40px; }
+        .page-title h1 {
+            font-size: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        .page-title p { color: #888; font-size: 18px; }
+
+        .form-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .form-group { margin-bottom: 25px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #ccc;
+            font-size: 16px;
+        }
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            height: 150px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        .form-group textarea:focus { border-color: #667eea; }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        .generate-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .loading { display: none; text-align: center; padding: 30px; }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #333;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .result-section {
+            display: none;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .sentiment-score {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .score-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 15px;
+            padding: 25px 35px;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .score-card .label {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .score-card .value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .sentiment-bar {
+            width: 100%;
+            height: 20px;
+            background: #1a1a1a;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .sentiment-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease;
+        }
+
+        .ai-analysis {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+            line-height: 1.8;
+            color: #ddd;
+            white-space: pre-wrap;
+        }
+
+        .ai-analysis h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .sample-reviews {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .sample-btn {
+            padding: 10px 18px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 20px;
+            color: #ccc;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .sample-btn:hover { border-color: #667eea; color: #667eea; }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 15px 20px; }
+            .form-section { padding: 25px; }
+            .page-title h1 { font-size: 28px; }
+            .sentiment-score { gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo">🚀 BizGenius AI</a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/content-writer">Content Writer</a></li>
+            <li><a href="/chatbot">Chatbot</a></li>
+            <li><a href="/sentiment">Sentiment</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <a href="/" class="back-btn">← Back to Home</a>
+
+        <div class="page-title">
+            <h1>📈 Sentiment Analyzer</h1>
+            <p>Analyze customer reviews and feedback using AI</p>
+        </div>
+
+        <div class="form-section">
+            <p style="color:#888; margin-bottom:15px;">Try a sample review:</p>
+            <div class="sample-reviews">
+                <button class="sample-btn" onclick="useSample('This product is amazing! Best purchase I ever made. The quality is outstanding and delivery was super fast.')">⭐ Positive Review</button>
+                <button class="sample-btn" onclick="useSample('Terrible experience. Product broke after 2 days. Customer support was unhelpful and rude. Want my money back.')">😡 Negative Review</button>
+                <button class="sample-btn" onclick="useSample('The product is okay. Nothing special but it works. Delivery took a while but packaging was decent.')">😐 Neutral Review</button>
+            </div>
+
+            <div class="form-group">
+                <label>📝 Paste Customer Review or Feedback</label>
+                <textarea id="reviewText" placeholder="Paste a customer review here... e.g., 'This product exceeded my expectations! Great quality and fast shipping.'"></textarea>
+            </div>
+
+            <button class="generate-btn" id="analyzeBtn" onclick="analyzeSentiment()">
+                🔍 Analyze Sentiment
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="color: #888;">Analyzing sentiment...</p>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <h3 style="color:#667eea; text-align:center; margin-bottom:25px;">Analysis Results</h3>
+
+            <div class="sentiment-score">
+                <div class="score-card">
+                    <div class="label">Sentiment</div>
+                    <div class="value" id="sentimentLabel">-</div>
+                </div>
+                <div class="score-card">
+                    <div class="label">Polarity Score</div>
+                    <div class="value" id="polarityScore" style="color:#667eea;">-</div>
+                </div>
+                <div class="score-card">
+                    <div class="label">Subjectivity</div>
+                    <div class="value" id="subjectivityScore" style="color:#764ba2;">-</div>
+                </div>
+            </div>
+
+            <div class="sentiment-bar">
+                <div class="sentiment-fill" id="sentimentBar"></div>
+            </div>
+
+            <div class="ai-analysis">
+                <h4>🤖 AI Detailed Analysis</h4>
+                <div id="aiAnalysis"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function useSample(text) {
+            document.getElementById('reviewText').value = text;
+        }
+
+        async function analyzeSentiment() {
+            const text = document.getElementById('reviewText').value.trim();
+            if (!text) { alert('Please enter a review!'); return; }
+
+            document.getElementById('analyzeBtn').disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/analyze-sentiment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('sentimentLabel').textContent = data.label;
+                    document.getElementById('sentimentLabel').style.color = data.color;
+                    document.getElementById('polarityScore').textContent = data.polarity;
+                    document.getElementById('subjectivityScore').textContent = data.subjectivity;
+
+                    const barWidth = ((data.polarity + 1) / 2) * 100;
+                    document.getElementById('sentimentBar').style.width = barWidth + '%';
+                    document.getElementById('sentimentBar').style.background = data.color;
+
+                    document.getElementById('aiAnalysis').textContent = data.ai_analysis;
+                    document.getElementById('resultSection').style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('analyzeBtn').disabled = false;
+        }
+    </script>
+
+</body>
+</html>

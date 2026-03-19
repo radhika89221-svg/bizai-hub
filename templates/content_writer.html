@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Writer - BizGenius AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 1px solid #222;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        /* MAIN CONTAINER */
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title h1 {
+            font-size: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .page-title p {
+            color: #888;
+            font-size: 18px;
+        }
+
+        /* FORM SECTION */
+        .form-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #ccc;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .form-group select option {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        /* GENERATE BUTTON */
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* LOADING */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #333;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* RESULT SECTION */
+        .result-section {
+            display: none;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .result-section h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .result-content {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 25px;
+            line-height: 1.8;
+            color: #ddd;
+            font-size: 16px;
+            white-space: pre-wrap;
+        }
+
+        /* COPY BUTTON */
+        .copy-btn {
+            margin-top: 15px;
+            padding: 12px 25px;
+            background: transparent;
+            border: 1px solid #667eea;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* BACK BUTTON */
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .back-btn:hover {
+            color: #764ba2;
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 15px 20px; }
+            .form-section { padding: 25px; }
+            .page-title h1 { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="/" class="logo">🚀 BizGenius AI</a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/content-writer">Content Writer</a></li>
+            <li><a href="/chatbot">Chatbot</a></li>
+            <li><a href="/sentiment">Sentiment</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <a href="/" class="back-btn">← Back to Home</a>
+
+        <div class="page-title">
+            <h1>📝 AI Content Writer</h1>
+            <p>Generate professional business content instantly with AI</p>
+        </div>
+
+        <!-- FORM -->
+        <div class="form-section">
+            <div class="form-group">
+                <label>📌 Content Type</label>
+                <select id="contentType">
+                    <option value="Marketing Email">Marketing Email</option>
+                    <option value="Product Description">Product Description</option>
+                    <option value="Social Media Caption">Social Media Caption</option>
+                    <option value="Blog Post Introduction">Blog Post Introduction</option>
+                    <option value="Business Proposal">Business Proposal</option>
+                    <option value="Press Release">Press Release</option>
+                    <option value="Customer Thank You Note">Customer Thank You Note</option>
+                    <option value="Job Description">Job Description</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>🎯 Topic / Product / Business Name</label>
+                <input type="text" id="topic" 
+                       placeholder="e.g., Launch of our new fitness app 'FitLife Pro'">
+            </div>
+
+            <div class="form-group">
+                <label>📝 Additional Details (Optional)</label>
+                <textarea id="details" 
+                          placeholder="e.g., Target audience is young professionals, tone should be friendly and energetic"></textarea>
+            </div>
+
+            <button class="generate-btn" id="generateBtn" onclick="generateContent()">
+                ✨ Generate Content
+            </button>
+        </div>
+
+        <!-- LOADING -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="color: #888;">AI is writing your content...</p>
+        </div>
+
+        <!-- RESULT -->
+        <div class="result-section" id="resultSection">
+            <h3>✅ Generated Content</h3>
+            <div class="result-content" id="resultContent"></div>
+            <button class="copy-btn" onclick="copyContent()">📋 Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <script>
+        async function generateContent() {
+            const contentType = document.getElementById('contentType').value;
+            const topic = document.getElementById('topic').value;
+            const details = document.getElementById('details').value;
+
+            if (!topic) {
+                alert('Please enter a topic!');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/generate-content', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content_type: contentType,
+                        topic: topic + (details ? '. Additional details: ' + details : '')
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('resultContent').textContent = data.result;
+                    document.getElementById('resultSection').style.display = 'block';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error connecting to server: ' + error.message);
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('generateBtn').disabled = false;
+        }
+
+        function copyContent() {
+            const content = document.getElementById('resultContent').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => btn.textContent = '📋 Copy to Clipboard', 2000);
+            });
+        }
+    </script>
+
+</body>
+</html>

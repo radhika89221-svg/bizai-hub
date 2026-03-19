@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizGenius AI - AI Business Toolkit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0a0a0f;
+            --surface: #0f0f1a;
+            --card: #13131f;
+            --border: rgba(255,255,255,0.07);
+            --violet: #7c6ff7;
+            --violet-light: #a89cf7;
+            --rose: #f06292;
+            --cyan: #4dd0e1;
+            --gold: #ffd54f;
+            --text: #e8e6f0;
+            --muted: #7a7890;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--ink);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* ── NOISE TEXTURE OVERLAY ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.4;
+        }
+
+        /* ══════════════════════════════
+           NAVBAR
+        ══════════════════════════════ */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 60px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 999;
+            background: rgba(10, 10, 15, 0.7);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.4s ease;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 20px;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--violet), var(--rose));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .logo span { color: var(--violet-light); }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 35px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            transition: color 0.25s;
+        }
+
+        .nav-links a:hover { color: var(--text); }
+
+        .nav-cta {
+            padding: 9px 22px;
+            background: var(--violet);
+            color: white !important;
+            border-radius: 8px;
+            transition: background 0.25s, transform 0.2s !important;
+        }
+
+        .nav-cta:hover {
+            background: var(--violet-light) !important;
+            transform: translateY(-1px);
+        }
+
+        /* ══════════════════════════════
+           HERO
+        ══════════════════════════════ */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 120px 20px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Ambient blobs */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            pointer-events: none;
+            animation: blobFloat 8s ease-in-out infinite;
+        }
+
+        .blob-1 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(124,111,247,0.18), transparent 70%);
+            top: -100px; left: -100px;
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(240,98,146,0.13), transparent 70%);
+            bottom: -50px; right: -50px;
+            animation-delay: 3s;
+        }
+
+        .blob-3 {
+            width: 350px; height: 350px;
+            background: radial-gradient(circle, rgba(77,208,225,0.1), transparent 70%);
+            top: 40%; left: 60%;
+            animation-delay: 5s;
+        }
+
+        @keyframes blobFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -20px) scale(1.05); }
+            66% { transform: translate(-20px, 30px) scale(0.97); }
+        }
+
+        /* Grid lines */
+        .hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at center, black 20%, transparent 80%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 16px;
+            background: rgba(124,111,247,0.12);
+            border: 1px solid rgba(124,111,247,0.3);
+            border-radius: 100px;
+            font-size: 13px;
+            color: var(--violet-light);
+            font-weight: 500;
+            margin-bottom: 32px;
+            animation: fadeUp 0.8s ease both;
+            animation-delay: 0.1s;
+            position: relative;
+            z-index: 2;
+        }
+
+        .badge-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--violet);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(124,111,247,0.7); }
+            50% { box-shadow: 0 0 0 6px rgba(124,111,247,0); }
+        }
+
+        .hero-title {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: clamp(44px, 7vw, 84px);
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 2;
+            animation: fadeUp 0.8s ease both;
+            animation-delay: 0.2s;
+        }
+
+        .title-line-1 { color: var(--text); display: block; }
+        .title-line-2 {
+            display: block;
+            background: linear-gradient(135deg, var(--violet) 0%, var(--rose) 50%, var(--cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: 18px;
+            color: var(--muted);
+            max-width: 520px;
+            line-height: 1.7;
+            margin-bottom: 44px;
+            font-weight: 300;
+            position: relative;
+            z-index: 2;
+            animation: fadeUp 0.8s ease both;
+            animation-delay: 0.35s;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            animation: fadeUp 0.8s ease both;
+            animation-delay: 0.5s;
+        }
+
+        .btn-primary {
+            padding: 15px 36px;
+            background: linear-gradient(135deg, var(--violet), #9b4dff);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.25s, box-shadow 0.25s;
+            font-family: 'DM Sans', sans-serif;
+            box-shadow: 0 0 40px rgba(124,111,247,0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 50px rgba(124,111,247,0.45);
+        }
+
+        .btn-secondary {
+            padding: 15px 30px;
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-secondary:hover {
+            color: var(--text);
+            border-color: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.04);
+        }
+
+        /* Stats row */
+        .hero-stats {
+            display: flex;
+            gap: 50px;
+            margin-top: 70px;
+            position: relative;
+            z-index: 2;
+            animation: fadeUp 0.8s ease both;
+            animation-delay: 0.65s;
+        }
+
+        .stat-item { text-align: center; }
+
+        .stat-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--text);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .stat-divider {
+            width: 1px;
+            background: var(--border);
+            align-self: stretch;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ══════════════════════════════
+           SECTION LAYOUT
+        ══════════════════════════════ */
+        .section {
+            padding: 100px 60px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .section-label {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--violet);
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(32px, 4vw, 50px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        .section-sub {
+            font-size: 17px;
+            color: var(--muted);
+            max-width: 480px;
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        /* ══════════════════════════════
+           TOOLS GRID
+        ══════════════════════════════ */
+        .tools-section {
+            padding: 80px 60px 100px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .tools-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .tool-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px 32px;
+            text-decoration: none;
+            color: var(--text);
+            display: block;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+                        border-color 0.3s,
+                        box-shadow 0.3s;
+            group: true;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(124,111,247,0.08), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .tool-card:hover::before { opacity: 1; }
+
+        .tool-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(124,111,247,0.4);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(124,111,247,0.1);
+        }
+
+        /* Card accent bar */
+        .tool-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: var(--card-accent, linear-gradient(90deg, var(--violet), var(--rose)));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tool-card:hover::after { opacity: 1; }
+
+        .card-icon-wrap {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 22px;
+            background: var(--icon-bg, rgba(124,111,247,0.12));
+        }
+
+        .tool-card h3 {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .tool-card p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.7;
+            font-weight: 300;
+        }
+
+        .card-arrow {
+            position: absolute;
+            bottom: 28px;
+            right: 28px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateX(-8px);
+        }
+
+        .tool-card:hover .card-arrow {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Individual card accent colors */
+        .card-1 { --card-accent: linear-gradient(90deg, #7c6ff7, #a89cf7); --icon-bg: rgba(124,111,247,0.12); }
+        .card-2 { --card-accent: linear-gradient(90deg, #f06292, #ff8a65); --icon-bg: rgba(240,98,146,0.12); }
+        .card-3 { --card-accent: linear-gradient(90deg, #4dd0e1, #26c6da); --icon-bg: rgba(77,208,225,0.12); }
+        .card-4 { --card-accent: linear-gradient(90deg, #66bb6a, #43a047); --icon-bg: rgba(102,187,106,0.12); }
+        .card-5 { --card-accent: linear-gradient(90deg, #ffd54f, #ffb300); --icon-bg: rgba(255,213,79,0.12); }
+        .card-6 { --card-accent: linear-gradient(90deg, #ef5350, #e53935); --icon-bg: rgba(239,83,80,0.12); }
+
+        /* ══════════════════════════════
+           TECH SECTION
+        ══════════════════════════════ */
+        .tech-section {
+            padding: 0 60px 100px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .tech-strip {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 50px 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .tech-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 28px;
+        }
+
+        .tech-pill {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tech-pill:hover {
+            background: rgba(124,111,247,0.12);
+            border-color: rgba(124,111,247,0.3);
+            color: var(--violet-light);
+        }
+
+        .tech-pill span { margin-right: 6px; }
+
+        .tech-visual {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .tech-vis-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .tech-vis-card .v-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            display: block;
+            background: linear-gradient(135deg, var(--violet), var(--rose));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tech-vis-card .v-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        /* ══════════════════════════════
+           ABOUT
+        ══════════════════════════════ */
+        .about-section {
+            padding: 0 60px 100px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .about-inner {
+            background: linear-gradient(135deg, rgba(124,111,247,0.08), rgba(240,98,146,0.05));
+            border: 1px solid rgba(124,111,247,0.15);
+            border-radius: 30px;
+            padding: 70px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-inner::before {
+            content: '';
+            position: absolute;
+            top: -60px; left: 50%;
+            transform: translateX(-50%);
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(124,111,247,0.15), transparent 70%);
+            pointer-events: none;
+        }
+
+        .about-inner p {
+            color: var(--muted);
+            font-size: 18px;
+            max-width: 680px;
+            margin: 24px auto 0;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        .author-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .author-tag strong { color: var(--violet-light); }
+
+        /* ══════════════════════════════
+           FOOTER
+        ══════════════════════════════ */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 36px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .footer-logo {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            color: var(--muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover { color: var(--text); }
+
+        /* ══════════════════════════════
+           SCROLL REVEAL
+        ══════════════════════════════ */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-delay-1 { transition-delay: 0.1s; }
+        .reveal-delay-2 { transition-delay: 0.2s; }
+        .reveal-delay-3 { transition-delay: 0.3s; }
+        .reveal-delay-4 { transition-delay: 0.4s; }
+        .reveal-delay-5 { transition-delay: 0.5s; }
+        .reveal-delay-6 { transition-delay: 0.6s; }
+
+        /* ══════════════════════════════
+           RESPONSIVE
+        ══════════════════════════════ */
+        @media (max-width: 1024px) {
+            .tools-grid { grid-template-columns: repeat(2, 1fr); }
+            .tech-strip { grid-template-columns: 1fr; gap: 40px; }
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 16px 24px; }
+            .nav-links { display: none; }
+            .hero { padding: 100px 20px 60px; }
+            .hero-stats { gap: 24px; flex-wrap: wrap; justify-content: center; }
+            .tools-section, .tech-section, .about-section { padding: 0 24px 70px; }
+            .tools-grid { grid-template-columns: 1fr; }
+            .tech-strip { padding: 36px 28px; }
+            .about-inner { padding: 44px 28px; }
+            .footer { flex-direction: column; gap: 16px; text-align: center; padding: 28px 24px; }
+            .section { padding: 70px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── NAVBAR ── -->
+    <nav class="navbar">
+        <a href="/" class="logo">
+            <div class="logo-icon">🚀</div>
+            Biz<span>Genius</span> AI
+        </a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="#tools">Tools</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="/chatbot" class="nav-cta">Try Chatbot →</a></li>
+        </ul>
+    </nav>
+
+    <!-- ── HERO ── -->
+    <section class="hero" id="home">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+
+        <div class="hero-badge">
+            <span class="badge-dot"></span>
+            Powered by Gemini 2.0 Flash · NLP · Computer Vision
+        </div>
+
+        <h1 class="hero-title">
+            <span class="title-line-1">Your Business.</span>
+            <span class="title-line-2">Supercharged by AI.</span>
+        </h1>
+
+        <p class="hero-sub">
+            Six powerful AI tools in one unified platform — generate content,
+            analyze sentiment, predict sales, and grow your business faster.
+        </p>
+
+        <div class="hero-actions">
+            <a href="#tools" class="btn-primary">
+                Explore Tools
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
+            </a>
+            <a href="/chatbot" class="btn-secondary">
+                💬 Chat with AI
+            </a>
+        </div>
+
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-num">6</span>
+                <span class="stat-label">AI Tools</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <span class="stat-num">4</span>
+                <span class="stat-label">AI Models</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <span class="stat-num">∞</span>
+                <span class="stat-label">Possibilities</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── TOOLS ── -->
+    <div class="tools-section" id="tools">
+        <div class="tools-header">
+            <span class="section-label">AI Toolkit</span>
+            <h2 class="section-title">Everything your business needs</h2>
+            <p class="section-sub" style="margin: 0 auto;">
+                Each tool is powered by real AI — from language models to
+                machine learning and speech processing.
+            </p>
+        </div>
+
+        <div class="tools-grid">
+
+            <a href="/content-writer" class="tool-card card-1 reveal reveal-delay-1">
+                <div class="card-icon-wrap">📝</div>
+                <h3>AI Content Writer</h3>
+                <p>Generate marketing emails, product descriptions, social media posts and blog content instantly with AI.</p>
+                <div class="card-arrow">→</div>
+            </a>
+
+            <a href="/image-generator" class="tool-card card-2 reveal reveal-delay-2">
+                <div class="card-icon-wrap">🖼️</div>
+                <h3>AI Image Generator</h3>
+                <p>Create professional image prompts and visual concepts for logos, banners, and product images.</p>
+                <div class="card-arrow">→</div>
+            </a>
+
+            <a href="/chatbot" class="tool-card card-3 reveal reveal-delay-3">
+                <div class="card-icon-wrap">💬</div>
+                <h3>Business Chatbot</h3>
+                <p>Get instant business advice, marketing strategies, and growth tips from your personal AI advisor.</p>
+                <div class="card-arrow">→</div>
+            </a>
+
+            <a href="/sentiment" class="tool-card card-4 reveal reveal-delay-4">
+                <div class="card-icon-wrap">📈</div>
+                <h3>Sentiment Analyzer</h3>
+                <p>Analyze customer reviews with TextBlob + Gemini AI dual-engine to understand feedback deeply.</p>
+                <div class="card-arrow">→</div>
+            </a>
+
+            <a href="/audio-tools" class="tool-card card-5 reveal reveal-delay-5">
+                <div class="card-icon-wrap">🎙️</div>
+                <h3>AI Audio Tools</h3>
+                <p>Text-to-speech, speech-to-text, podcast scripts and presentation notes — all in one place.</p>
+                <div class="card-arrow">→</div>
+            </a>
+
+            <a href="/sales-predictor" class="tool-card card-6 reveal reveal-delay-6">
+                <div class="card-icon-wrap">📊</div>
+                <h3>Sales Predictor</h3>
+                <p>Upload your monthly sales data and let AI analyze trends, predict the future, and give strategic advice.</p>
+                <div class="card-arrow">→</div>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- ── TECH STACK ── -->
+    <div class="tech-section">
+        <div class="tech-strip reveal">
+            <div>
+                <span class="section-label">Under the Hood</span>
+                <h2 class="section-title" style="font-size: 34px;">Built with real AI technologies</h2>
+                <p class="section-sub" style="font-size: 15px;">
+                    Not just a demo — BizGenius AI integrates multiple AI systems
+                    that actually work together in a unified platform.
+                </p>
+                <div class="tech-pills">
+                    <span class="tech-pill"><span>🧠</span>Gemini 2.0 Flash</span>
+                    <span class="tech-pill"><span>🐍</span>Python Flask</span>
+                    <span class="tech-pill"><span>📊</span>TextBlob NLP</span>
+                    <span class="tech-pill"><span>🎤</span>Web Speech API</span>
+                    <span class="tech-pill"><span>🖼️</span>Stable Diffusion</span>
+                    <span class="tech-pill"><span>🔗</span>OpenRouter API</span>
+                    <span class="tech-pill"><span>🤗</span>HuggingFace</span>
+                    <span class="tech-pill"><span>⚡</span>REST APIs</span>
+                </div>
+            </div>
+            <div class="tech-visual">
+                <div class="tech-vis-card">
+                    <span class="v-num">NLP</span>
+                    <span class="v-label">Natural Language Processing</span>
+                </div>
+                <div class="tech-vis-card">
+                    <span class="v-num">CV</span>
+                    <span class="v-label">Computer Vision</span>
+                </div>
+                <div class="tech-vis-card">
+                    <span class="v-num">ML</span>
+                    <span class="v-label">Machine Learning</span>
+                </div>
+                <div class="tech-vis-card">
+                    <span class="v-num">STT</span>
+                    <span class="v-label">Speech Recognition</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── ABOUT ── -->
+    <div class="about-section" id="about">
+        <div class="about-inner reveal">
+            <span class="section-label">About the Project</span>
+            <h2 class="section-title">BizGenius AI</h2>
+            <p>
+                An all-in-one AI-powered business toolkit that integrates multiple artificial
+                intelligence technologies — NLP, Computer Vision, Machine Learning, and Speech
+                Processing — into one unified platform. Built to demonstrate how modern AI APIs
+                can be combined to solve real-world business problems.
+            </p>
+            <div class="author-tag">
+                ✨ Built with curiosity & code by <strong>Ayushi Singh</strong> &nbsp;·&nbsp; 2nd Semester AI Project &nbsp;·&nbsp; 2026
+            </div>
+        </div>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <footer class="footer">
+        <div class="footer-logo">BizGenius AI</div>
+        <div class="footer-links">
+            <a href="/">Home</a>
+            <a href="/chatbot">Chatbot</a>
+            <a href="/sentiment">Sentiment</a>
+            <a href="/sales-predictor">Sales</a>
+        </div>
+        <div>© 2026 BizGenius AI</div>
+    </footer>
+
+    <script>
+        // ── SCROLL REVEAL ──
+        const reveals = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(el => {
+                if (el.isIntersecting) {
+                    el.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.12 });
+
+        reveals.forEach(el => observer.observe(el));
+
+        // ── NAVBAR SHRINK ON SCROLL ──
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.navbar');
+            if (window.scrollY > 60) {
+                nav.style.padding = '12px 60px';
+                nav.style.background = 'rgba(10, 10, 15, 0.95)';
+            } else {
+                nav.style.padding = '18px 60px';
+                nav.style.background = 'rgba(10, 10, 15, 0.7)';
+            }
+        });
+
+        // ── MOUSE GLOW ON CARDS ──
+        document.querySelectorAll('.tool-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+                const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+                card.style.setProperty('--mx', x + '%');
+                card.style.setProperty('--my', y + '%');
+            });
+        });
+
+        // ── ANIMATED COUNTER ──
+        function animateCount(el, target, suffix = '') {
+            let count = 0;
+            const step = target / 40;
+            const timer = setInterval(() => {
+                count += step;
+                if (count >= target) {
+                    el.textContent = target + suffix;
+                    clearInterval(timer);
+                } else {
+                    el.textContent = Math.floor(count) + suffix;
+                }
+            }, 30);
+        }
+
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const nums = document.querySelectorAll('.stat-num');
+                    animateCount(nums[0], 6);
+                    animateCount(nums[1], 4);
+                    statsObserver.disconnect();
+                }
+            });
+        }, { threshold: 0.5 });
+
+        const statsEl = document.querySelector('.hero-stats');
+        if (statsEl) statsObserver.observe(statsEl);
+    </script>
+</body>
+</html>
