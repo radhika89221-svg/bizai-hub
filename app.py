@@ -4,7 +4,7 @@ import requests
 import base64
 import os
 
-load_dotenv()   #this loads .env file
+
 app = Flask(__name__)
 
 # ============================================
