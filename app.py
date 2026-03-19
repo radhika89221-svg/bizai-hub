@@ -1,4 +1,3 @@
-from dotenv import load_doten
 from flask import Flask, render_template, request, jsonify
 from textblob import TextBlob
 import requests
@@ -20,50 +19,63 @@ if not OPENROUTER_KEY:
 def ask_ai(prompt):
     """Send prompt to AI and get response."""
     try:
+        if not OPENROUTER_KEY:
+            return "Error: API key not configured. Please set OPENROUTER_KEY environment variable."
+
         url = "https://openrouter.ai/api/v1/chat/completions"
 
         headers = {
             "Authorization": f"Bearer {OPENROUTER_KEY}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost:5000",
+            "HTTP-Referer": "https://bizgenius-ai.onrender.com",
             "X-Title": "BizGenius AI"
         }
 
         models_to_try = [
             "google/gemma-3-27b-it:free",
+            "google/gemma-3-4b-it:free",
             "deepseek/deepseek-chat-v3-0324:free",
             "qwen/qwen3-8b:free",
             "meta-llama/llama-3.3-8b-instruct:free",
             "mistralai/mistral-small-3.1-24b-instruct:free",
-            "google/gemma-3-4b-it:free",
         ]
 
         for model in models_to_try:
             print(f"[AI] Trying: {model}")
+
             data = {
                 "model": model,
                 "messages": [{"role": "user", "content": prompt}]
             }
 
-            response = requests.post(url, headers=headers, json=data, timeout=60)
-            result = response.json()
+            try:
+                response = requests.post(url, headers=headers, json=data, timeout=60)
+                result = response.json()
 
-            if 'choices' in result and len(result['choices']) > 0:
-                print(f"[AI] Success with: {model}")
-                return result['choices'][0]['message']['content']
+                print(f"[AI] Response status: {response.status_code}")
 
-            if 'error' in result:
-                print(f"[AI] Failed {model}: {result['error'].get('message', '')}")
+                if 'choices' in result and len(result['choices']) > 0:
+                    answer = result['choices'][0]['message']['content']
+                    print(f"[AI] Success with: {model}")
+                    return answer
+
+                if 'error' in result:
+                    error_msg = result['error'].get('message', 'Unknown')
+                    print(f"[AI] Error from {model}: {error_msg}")
+                    continue
+
+            except requests.exceptions.Timeout:
+                print(f"[AI] Timeout for {model}")
+                continue
+            except Exception as e:
+                print(f"[AI] Exception for {model}: {str(e)}")
                 continue
 
         return "AI is temporarily busy. Please try again in a minute."
 
-    except requests.exceptions.Timeout:
-        return "Request timed out. Please try again."
     except Exception as e:
+        print(f"[AI] Fatal error: {str(e)}")
         return f"Error: {str(e)}"
-
-
 # ============================================
 # HOME PAGE
 # ============================================
