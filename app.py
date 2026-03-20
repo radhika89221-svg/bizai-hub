@@ -6,7 +6,7 @@ import os
 
 
 app = Flask(__name__)
-
+print("USING KEY:", OPENROUTER_KEY[:15])
 # ============================================
 # YOUR API KEY
 # ============================================
