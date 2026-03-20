@@ -4,14 +4,14 @@ import requests
 import base64
 import os
 
-
-app = Flask(__name__)
-print("USING KEY:", OPENROUTER_KEY[:15])
-# ============================================
-# YOUR API KEY
-# ============================================
 OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY")
 
+if OPENROUTER_KEY:
+    print("USING KEY:", OPENROUTER_KEY[:15])
+else:
+    print("NO API KEY FOUND")
+
+app = Flask(__name__)
 if not OPENROUTER_KEY:
     raise ValueError("OPENROUTER_KEY is not set")
 
