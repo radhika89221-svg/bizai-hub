@@ -137,6 +137,29 @@
             border-color: rgba(123,94,167,0.3);
         }
 
+        .nav-form {
+            display: inline;
+        }
+
+        .nav-button {
+            color: var(--muted);
+            background: transparent;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.25s, background-color 0.25s, border-color 0.25s;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .nav-button:hover {
+            color: var(--text);
+            background: rgba(123,94,167,0.08);
+            border-color: rgba(123,94,167,0.18);
+        }
+
         .nav-cta {
             padding: 9px 22px;
             background: var(--purple);
@@ -157,6 +180,29 @@
             max-width: 960px;
             margin: 0 auto;
             padding: 110px 24px 80px;
+        }
+
+        .account-banner {
+            margin-bottom: 22px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 1px solid rgba(123,94,167,0.28);
+            background: rgba(123,94,167,0.08);
+            color: var(--lavender);
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .account-banner a {
+            color: white;
+            text-decoration: none;
+            padding: 9px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.14);
         }
 
         .back-btn {
@@ -963,12 +1009,29 @@
             <li><a href="/content-writer">Content Writer</a></li>
             <li><a href="/image-generator" class="active">Image Generator</a></li>
             <li><a href="/audio-tools">Audio Tools</a></li>
-            <li><a href="/chatbot" class="nav-cta">Try Chatbot</a></li>
+            {% if current_user.is_authenticated %}
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li>
+                <form method="post" action="/logout" class="nav-form">
+                    <button type="submit" class="nav-button">Logout</button>
+                </form>
+            </li>
+            {% else %}
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register" class="nav-cta">Get Started</a></li>
+            {% endif %}
         </ul>
     </nav>
 
     <!-- ── PAGE WRAP ── -->
     <div class="page-wrap">
+
+        {% if current_user.is_authenticated %}
+        <div class="account-banner">
+            <div>{{ current_user.name }} has {{ current_user.quota_remaining() }} of {{ current_user.daily_quota }} actions left today.</div>
+            <a href="/dashboard">View Dashboard</a>
+        </div>
+        {% endif %}
 
         <a href="/" class="back-btn">
             &larr; Back to Home

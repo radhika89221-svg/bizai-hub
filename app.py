@@ -1,12 +1,39 @@
 from dotenv import load_dotenv
 from flask import Flask
 import os
+import tempfile
 
 load_dotenv()
 
+from extensions import db, limiter, login_manager
+from models import User
 from routes import register_blueprints
 
 app = Flask(__name__)
+os.makedirs(app.instance_path, exist_ok=True)
+local_data_dir = os.path.join(tempfile.gettempdir(), 'BizGeniusAI')
+os.makedirs(local_data_dir, exist_ok=True)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-change-me')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URL',
+    f"sqlite:///{os.path.join(local_data_dir, 'bizgenius.db')}"
+)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['RATELIMIT_STORAGE_URI'] = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')
+
+db.init_app(app)
+login_manager.init_app(app)
+limiter.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+with app.app_context():
+    db.create_all()
+
 register_blueprints(app)
 
 

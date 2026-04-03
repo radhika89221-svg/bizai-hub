@@ -156,6 +156,31 @@
             border-color: rgba(160,130,255,0.18);
         }
 
+        .nav-form {
+            display: inline;
+        }
+
+        .nav-button {
+            color: var(--muted);
+            background: transparent;
+            text-decoration: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: color 0.3s, background-color 0.3s, border-color 0.3s;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .nav-button:hover {
+            color: var(--royal-bright);
+            background: rgba(124,58,237,0.08);
+            border-color: rgba(160,130,255,0.18);
+        }
+
         .nav-cta {
             padding: 10px 24px;
             background: linear-gradient(135deg, var(--royal), var(--indigo));
@@ -935,7 +960,17 @@
             <li><a href="#about">About</a></li>
             <li><a href="/image-generator">Images</a></li>
             <li><a href="/audio-tools">Audio</a></li>
-            <li><a href="/chatbot" class="nav-cta">Try Chatbot</a></li>
+            {% if current_user.is_authenticated %}
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li>
+                <form method="post" action="/logout" class="nav-form">
+                    <button type="submit" class="nav-button">Logout</button>
+                </form>
+            </li>
+            {% else %}
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register" class="nav-cta">Get Started</a></li>
+            {% endif %}
         </ul>
     </nav>
 
@@ -968,9 +1003,15 @@
                 Explore Tools
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
             </a>
-            <a href="/chatbot" class="btn-secondary">
-                Chat with AI
+            {% if current_user.is_authenticated %}
+            <a href="/dashboard" class="btn-secondary">
+                Open Dashboard
             </a>
+            {% else %}
+            <a href="/register" class="btn-secondary">
+                Create Account
+            </a>
+            {% endif %}
         </div>
 
         <div class="hero-stats">

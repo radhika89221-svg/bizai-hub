@@ -11,6 +11,8 @@ from ai_services import (
     try_openrouter_image,
     try_pollinations,
 )
+from auth_utils import api_login_required, consume_quota, require_quota
+from extensions import limiter
 from history_store import clear_history_entries, fetch_history_entries, save_history_entry
 from response_utils import json_error, json_success, parse_json_request
 
@@ -19,8 +21,14 @@ api_bp = Blueprint('api', __name__)
 
 
 @api_bp.route('/api/generate-content', methods=['POST'])
+@api_login_required
+@limiter.limit('30 per hour')
 def generate_content():
     try:
+        quota_error = require_quota()
+        if quota_error:
+            return quota_error
+
         data, error_response = parse_json_request()
         if error_response:
             return error_response
@@ -44,14 +52,21 @@ Do not include any extra explanation, just the content."""
             result,
             {'content_type': content_type}
         )
+        consume_quota()
         return json_success(result=result)
     except Exception as exc:
         return json_error(str(exc), 500)
 
 
 @api_bp.route('/api/chat', methods=['POST'])
+@api_login_required
+@limiter.limit('60 per hour')
 def chat():
     try:
+        quota_error = require_quota()
+        if quota_error:
+            return quota_error
+
         data, error_response = parse_json_request()
         if error_response:
             return error_response
@@ -66,14 +81,21 @@ Be concise but thorough. Use bullet points when helpful.
 User asks: {user_message}"""
         result = ask_ai(prompt)
         save_history_entry('chatbot', user_message, result)
+        consume_quota()
         return json_success(result=result)
     except Exception as exc:
         return json_error(str(exc), 500)
 
 
 @api_bp.route('/api/analyze-sentiment', methods=['POST'])
+@api_login_required
+@limiter.limit('30 per hour')
 def analyze_sentiment():
     try:
+        quota_error = require_quota()
+        if quota_error:
+            return quota_error
+
         data, error_response = parse_json_request()
         if error_response:
             return error_response
@@ -106,6 +128,7 @@ Keep it concise."""
                 'subjectivity': round(subjectivity, 2)
             }
         )
+        consume_quota()
 
         return json_success(
             polarity=round(polarity, 2),
@@ -119,8 +142,14 @@ Keep it concise."""
 
 
 @api_bp.route('/api/generate-image-prompt', methods=['POST'])
+@api_login_required
+@limiter.limit('20 per hour')
 def generate_image_prompt():
     try:
+        quota_error = require_quota()
+        if quota_error:
+            return quota_error
+
         data, error_response = parse_json_request()
         if error_response:
             return error_response
@@ -135,14 +164,21 @@ Include: style, colors, composition, lighting, mood.
 Give ONLY the prompt text, nothing else."""
         result = ask_ai(prompt)
         save_history_entry('image-prompts', description, result)
+        consume_quota()
         return json_success(result=result)
     except Exception as exc:
         return json_error(str(exc), 500)
 
 
 @api_bp.route('/api/generate-real-image', methods=['POST'])
+@api_login_required
+@limiter.limit('12 per hour')
 def generate_real_image():
     try:
+        quota_error = require_quota()
+        if quota_error:
+            return quota_error
+
         data, error_response = parse_json_request()
         if error_response:
             return error_response
@@ -171,6 +207,7 @@ def generate_real_image():
                 huggingface_result['image_url'],
                 {'provider': huggingface_result.get('provider'), 'width': width, 'height': height}
             )
+            consume_quota()
             return json_success(**{k: v for k, v in huggingface_result.items() if k != 'success'})
         errors.append(huggingface_result.get('error'))
 
@@ -187,6 +224,7 @@ def generate_real_image():
                 openrouter_result['image_url'],
                 {'provider': openrouter_result.get('provider'), 'width': width, 'height': height}
             )
+            consume_quota()
             return json_success(**{k: v for k, v in openrouter_result.items() if k != 'success'})
         errors.append(openrouter_result.get('error'))
 
@@ -203,6 +241,7 @@ def generate_real_image():
                 pollinations_result['image_url'],
                 {'provider': pollinations_result.get('provider'), 'width': width, 'height': height}
             )
+            consume_quota()
             return json_success(**{k: v for k, v in pollinations_result.items() if k != 'success'})
         errors.append(pollinations_result.get('error'))
 
@@ -212,6 +251,7 @@ def generate_real_image():
 
 
 @api_bp.route('/api/history/<tool_name>')
+@api_login_required
 def get_tool_history(tool_name):
     try:
         allowed_tools = {
@@ -233,6 +273,7 @@ def get_tool_history(tool_name):
 
 
 @api_bp.route('/api/history/<tool_name>/clear', methods=['POST'])
+@api_login_required
 def clear_tool_history(tool_name):
     try:
         allowed_tools = {
@@ -253,8 +294,14 @@ def clear_tool_history(tool_name):
 
 
 @api_bp.route('/api/predict-sales', methods=['POST'])
+@api_login_required
+@limiter.limit('20 per hour')
 def predict_sales():
     try:
+        quota_error = require_quota()
+        if quota_error:
+            return quota_error
+
         data, error_response = parse_json_request()
         if error_response:
             return error_response
@@ -275,6 +322,7 @@ Provide:
 Be specific with numbers. Format with headings."""
         result = ask_ai(prompt)
         save_history_entry('sales-predictor', sales_data, result)
+        consume_quota()
         return json_success(result=result)
     except Exception as exc:
         return json_error(str(exc), 500)

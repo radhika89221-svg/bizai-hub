@@ -1,0 +1,91 @@
+{% extends "tool_base.html" %}
+
+{% block title %}Register - BizGenius AI{% endblock %}
+{% block heading %}Create Your Account{% endblock %}
+{% block subtitle %}Get your own workspace, history, and daily usage quota{% endblock %}
+
+{% block extra_css %}
+        .auth-card {
+            max-width: 560px;
+            margin: 0 auto;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 32px;
+        }
+
+        .auth-form {
+            display: grid;
+            gap: 18px;
+        }
+
+        .auth-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+        }
+
+        .auth-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: #fff;
+            outline: none;
+        }
+
+        .auth-group input:focus {
+            border-color: #667eea;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-note {
+            margin-top: 18px;
+            color: #888;
+            text-align: center;
+        }
+
+        .auth-note a {
+            color: #9bb1ff;
+            text-decoration: none;
+        }
+{% endblock %}
+
+{% block body %}
+    <div class="auth-card">
+        <form method="post" class="auth-form">
+            <div class="auth-group">
+                <label>Name</label>
+                <input type="text" name="name" required>
+            </div>
+            <div class="auth-group">
+                <label>Email</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="auth-group">
+                <label>Password</label>
+                <input type="password" name="password" minlength="8" required>
+            </div>
+            <div class="auth-group">
+                <label>Confirm Password</label>
+                <input type="password" name="confirm_password" minlength="8" required>
+            </div>
+            <button type="submit" class="auth-btn">Create Account</button>
+        </form>
+        <div class="auth-note">
+            Already have an account? <a href="/login">Log in</a>
+        </div>
+    </div>
+{% endblock %}

@@ -10,12 +10,17 @@ BizGenius AI is a Flask-based business toolkit that combines multiple AI-powered
 - AI Image Generator with provider fallback
 - Audio Tools
 - Sales Predictor
+- User accounts with login/register/logout
+- Dashboard with quota tracking
 - Local history/persistence for major tools
 
 ## Tech Stack
 
 - Python
 - Flask
+- Flask-Login
+- Flask-SQLAlchemy
+- Flask-Limiter
 - TextBlob
 - Requests
 - Gunicorn
@@ -29,11 +34,15 @@ BizGenius AI is a Flask-based business toolkit that combines multiple AI-powered
 bizai-hub/
 |- app.py
 |- ai_services.py
+|- auth_utils.py
+|- extensions.py
 |- history_store.py
+|- models.py
 |- response_utils.py
 |- routes/
 |  |- __init__.py
 |  |- api.py
+|  |- auth.py
 |  `- pages.py
 |- static/
 |  `- generated/
@@ -45,6 +54,9 @@ bizai-hub/
 |  |- sentiment.html
 |  |- sales_predictor.html
 |  |- audio_tools.html
+|  |- dashboard.html
+|  |- login.html
+|  |- register.html
 |  `- tool_base.html
 |- requirements.txt
 |- Procfile
@@ -58,12 +70,18 @@ Create a `.env` file in the project root.
 ```env
 OPENROUTER_KEY=your_openrouter_key
 HF_TOKEN=your_huggingface_token
+SECRET_KEY=your_secret_key
+DATABASE_URL=optional_database_url
+RATELIMIT_STORAGE_URI=optional_rate_limit_storage
 ```
 
 Notes:
 
 - `OPENROUTER_KEY` is used for text generation and as an image fallback.
 - `HF_TOKEN` is used for Hugging Face image generation.
+- `SECRET_KEY` is used for login sessions and flash messages.
+- `DATABASE_URL` is optional. If omitted, the app uses a local SQLite database.
+- `RATELIMIT_STORAGE_URI` is optional. Default is in-memory limiter storage for development.
 - Do not commit `.env`.
 
 ## Install Locally
@@ -95,6 +113,14 @@ Open:
 http://127.0.0.1:5000/
 ```
 
+If your machine has broken proxy variables set, clear them in the same terminal before running:
+
+```powershell
+$env:HTTP_PROXY=''
+$env:HTTPS_PROXY=''
+$env:ALL_PROXY=''
+```
+
 ## Production / Render Deploy
 
 This project is set up for Gunicorn deployment.
@@ -114,6 +140,11 @@ gunicorn app:app
 - Required environment variables on Render:
   - `OPENROUTER_KEY`
   - `HF_TOKEN`
+  - `SECRET_KEY`
+
+- Recommended on Render:
+  - set `DATABASE_URL` to a persistent production database
+  - set `RATELIMIT_STORAGE_URI` to a persistent backend such as Redis
 
 ## Image Generation Flow
 
@@ -143,11 +174,24 @@ History is currently used by:
 
 This file is ignored by git.
 
+When users are logged in, history is stored per-user in the database instead of the local JSON fallback.
+
+## Auth, Quota, and Protection
+
+- Tool pages require login
+- JSON APIs return `401` when accessed without authentication
+- Daily quota is tracked per user
+- Major AI endpoints are rate limited
+- Dashboard shows current plan, usage, and recent activity
+
 ## Main Routes
 
 Pages:
 
 - `/`
+- `/login`
+- `/register`
+- `/dashboard`
 - `/content-writer`
 - `/chatbot`
 - `/sentiment`
@@ -171,11 +215,11 @@ APIs:
 - `app_original.py` is treated as a local backup, not the active application entrypoint.
 - The live app runs from `app.py`.
 - Runtime-generated files such as `static/generated/` and history JSON are ignored by git.
+- The default local SQLite database is created outside the repo workspace to avoid OneDrive write issues on this machine.
 
 ## Future Improvements
 
-- Add authentication
-- Move history to a real database
 - Add automated tests
-- Add rate limiting and API protection
+- Add plan upgrades and billing
+- Move limiter storage to a persistent production backend
 - Share more frontend utilities across pages

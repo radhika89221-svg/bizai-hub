@@ -1,0 +1,143 @@
+{% extends "tool_base.html" %}
+
+{% block title %}Dashboard - BizGenius AI{% endblock %}
+{% block heading %}Your Dashboard{% endblock %}
+{% block subtitle %}Track usage, quota, and your latest saved work{% endblock %}
+
+{% block extra_css %}
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 26px;
+        }
+
+        .metric-card,
+        .history-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 18px;
+            padding: 24px;
+        }
+
+        .metric-card h3,
+        .history-card h3 {
+            color: #fff;
+            margin-bottom: 12px;
+        }
+
+        .quota-progress {
+            margin-top: 12px;
+            height: 12px;
+            border-radius: 999px;
+            background: #1a1a1a;
+            overflow: hidden;
+            border: 1px solid #2a2a2a;
+        }
+
+        .quota-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #9bb1ff;
+        }
+
+        .metric-note {
+            color: #888;
+            margin-top: 6px;
+        }
+
+        .history-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .history-item {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .history-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .history-input {
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .history-output {
+            color: #ccc;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            max-height: 96px;
+            overflow: auto;
+        }
+
+        .history-empty {
+            color: #888;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+{% endblock %}
+
+{% block body %}
+    <div class="dashboard-grid">
+        <div class="metric-card">
+            <h3>Hello, {{ current_user.name }}</h3>
+            <div class="metric-value">{{ current_user.plan|title }}</div>
+            <div class="metric-note">Current account plan</div>
+        </div>
+        <div class="metric-card">
+            <h3>Daily Quota</h3>
+            <div class="metric-value">{{ current_user.daily_used }}/{{ current_user.daily_quota }}</div>
+            <div class="metric-note">{{ current_user.quota_remaining() }} actions remaining today</div>
+            <div class="quota-progress">
+                <div class="quota-fill" style="width: {{ ((current_user.daily_used / current_user.daily_quota) * 100) if current_user.daily_quota else 0 }}%;"></div>
+            </div>
+        </div>
+        <div class="metric-card">
+            <h3>Email</h3>
+            <div class="metric-value" style="font-size:20px;">{{ current_user.email }}</div>
+            <div class="metric-note">Logged-in account</div>
+        </div>
+    </div>
+
+    <div class="history-card">
+        <h3>Recent Activity</h3>
+        <div class="history-list">
+            {% if recent_history %}
+                {% for item in recent_history %}
+                <div class="history-item">
+                    <div class="history-meta">
+                        <span>{{ item.tool }}</span>
+                        <span>{{ item.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                    </div>
+                    <div class="history-input">{{ item.input_text }}</div>
+                    <div class="history-output">{{ item.output_text }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="history-empty">No activity saved yet.</div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
