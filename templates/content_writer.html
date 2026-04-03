@@ -345,7 +345,7 @@
             list.innerHTML = items.map((item, index) => `
                 <div class="history-item">
                     <div class="history-meta">
-                        <span>${item.meta?.content_type || 'Generated content'}${item.meta?.version_number ? ` • v${item.meta.version_number}` : ''}</span>
+                        <span>${item.meta?.content_type || 'Generated content'}${item.meta?.version_number ? ` - v${item.meta.version_number}` : ''}</span>
                         <span>${formatDate(item.created_at)}</span>
                     </div>
                     <div class="history-input">${item.input_text}</div>
@@ -432,7 +432,7 @@
                     lastPayload = payload;
                     lastGeneratedOutput = data.result;
                     document.getElementById('resultHeading').textContent = data.version_number
-                        ? `Generated Content • Version ${data.version_number}`
+                        ? `Generated Content - Version ${data.version_number}`
                         : 'Generated Content';
                     document.getElementById('resultContent').textContent = data.result;
                     document.getElementById('resultSection').style.display = 'block';

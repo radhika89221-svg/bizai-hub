@@ -76,6 +76,7 @@
             border: 1px solid #333;
             color: #ddd;
             border-bottom-left-radius: 5px;
+            white-space: pre-wrap;
         }
 
         .bot-msg .bot-label {
@@ -454,7 +455,11 @@
             msgDiv.className = `message ${type === 'user' ? 'user-msg' : 'bot-msg'}`;
 
             if (type === 'bot') {
-                msgDiv.innerHTML = `<div class="bot-label">BizGenius AI</div>${text}`;
+                const label = document.createElement('div');
+                label.className = 'bot-label';
+                label.textContent = 'BizGenius AI';
+                msgDiv.appendChild(label);
+                msgDiv.appendChild(document.createTextNode(text));
             } else {
                 msgDiv.textContent = text;
             }

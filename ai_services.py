@@ -23,7 +23,23 @@ DEFAULT_TEXT_MODELS = [
     model.strip()
     for model in os.environ.get(
         "OPENROUTER_TEXT_MODELS",
-        os.environ.get("OPENROUTER_TEXT_MODEL", "qwen/qwen3.6-plus:free,openai/gpt-oss-20b:free,meta-llama/llama-3.3-70b-instruct:free")
+        os.environ.get("OPENROUTER_TEXT_MODEL", "stepfun/step-3.5-flash:free,qwen/qwen3.6-plus:free,meta-llama/llama-3.3-70b-instruct:free")
+    ).split(",")
+    if model.strip()
+]
+DEFAULT_CHAT_MODELS = [
+    model.strip()
+    for model in os.environ.get(
+        "OPENROUTER_CHAT_MODELS",
+        "stepfun/step-3.5-flash:free,qwen/qwen3.6-plus:free"
+    ).split(",")
+    if model.strip()
+]
+DEFAULT_CONTENT_MODELS = [
+    model.strip()
+    for model in os.environ.get(
+        "OPENROUTER_CONTENT_MODELS",
+        "stepfun/step-3.5-flash:free,qwen/qwen3.6-plus:free"
     ).split(",")
     if model.strip()
 ]
@@ -85,7 +101,17 @@ def get_text_models(models=None):
         return [model.strip() for model in models if model and model.strip()]
     if DEFAULT_TEXT_MODELS:
         return DEFAULT_TEXT_MODELS
-    return ["qwen/qwen3.6-plus:free"]
+    return ["stepfun/step-3.5-flash:free", "qwen/qwen3.6-plus:free"]
+
+
+def get_chat_models():
+    """Return the preferred model order for chat-style responses."""
+    return DEFAULT_CHAT_MODELS or get_text_models()
+
+
+def get_content_models():
+    """Return the preferred model order for content-writing responses."""
+    return DEFAULT_CONTENT_MODELS or get_text_models()
 
 
 def require_text(data, field_name, label=None, max_length=4000):
@@ -146,7 +172,7 @@ def sentiment_metadata(polarity):
     return "Neutral", "#FF9800"
 
 
-def ask_ai(prompt, models=None, fallback_text=None):
+def ask_ai(prompt, models=None, fallback_text=None, max_tokens=None):
     """Send prompt to AI and get response."""
     try:
         openrouter_key = get_openrouter_key()
@@ -168,7 +194,11 @@ def ask_ai(prompt, models=None, fallback_text=None):
             response = requests.post(
                 url,
                 headers=headers,
-                json={"model": model, "messages": [{"role": "user", "content": prompt}]},
+                json={
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    **({"max_tokens": max_tokens} if max_tokens else {})
+                },
                 timeout=DEFAULT_REQUEST_TIMEOUT
             )
             result = response.json()
@@ -216,9 +246,20 @@ def ask_ai(prompt, models=None, fallback_text=None):
 
 def build_content_prompt(content_type, topic, details='', variation_mode='fresh', previous_output=''):
     """Create a safer, more controllable content-writing prompt."""
+    content_lengths = {
+        "Marketing Email": "Keep it between 120 and 180 words.",
+        "Product Description": "Keep it between 80 and 140 words.",
+        "Social Media Caption": "Keep it under 90 words.",
+        "Blog Post Introduction": "Keep it between 90 and 140 words.",
+        "Business Proposal": "Keep it between 140 and 220 words.",
+        "Press Release": "Keep it between 140 and 220 words.",
+        "Customer Thank You Note": "Keep it under 100 words.",
+        "Job Description": "Keep it between 140 and 220 words.",
+    }
     instructions = [
         "You are a professional business content writer.",
         f"Write a {content_type} about: {topic}.",
+        content_lengths.get(content_type, "Keep it concise and ready to use."),
     ]
     if details:
         instructions.append(f"Additional details to respect: {details}.")
@@ -229,6 +270,7 @@ def build_content_prompt(content_type, topic, details='', variation_mode='fresh'
         instructions.append("Rewrite the previous draft into a cleaner, stronger version while keeping the same goal.")
         instructions.append(f"Previous draft for reference: {previous_output}")
     instructions.append("Make it professional, engaging, and ready to use.")
+    instructions.append("Use plain text only. Do not use markdown, bullet symbols, or meta commentary.")
     instructions.append("Do not include setup notes or explanation, only the final content.")
     return "\n".join(instructions)
 
@@ -255,9 +297,11 @@ def build_chat_prompt(user_message, history_items):
         history_lines.append(f"User: {item.get('input_text', '')}")
         history_lines.append(f"Assistant: {item.get('output_text', '')}")
     history_block = "\n".join(history_lines) if history_lines else "No recent conversation."
-    return f"""You are BizGenius AI, a helpful business advisor chatbot.
-Give practical, actionable business advice.
-Be concise but thorough. Use bullets when helpful.
+    return f"""You are BizGenius AI, a helpful and natural-sounding business advisor.
+Reply like a smart human advisor having a real conversation.
+Be practical, clear, and warm.
+Avoid emojis, markdown, headings, bold text, and consultant-style formatting.
+Prefer 2 to 4 short paragraphs. Use a short numbered list only when it truly helps.
 Continue the conversation naturally using the recent context below when relevant.
 
 Recent conversation:
@@ -265,6 +309,27 @@ Recent conversation:
 
 Current user message:
 {user_message}"""
+
+
+def normalize_chat_response(text):
+    """Make model output read more naturally in the chat UI."""
+    value = str(text or "").strip()
+    value = re.sub(r"\*\*(.*?)\*\*", r"\1", value)
+    value = re.sub(r"\*(.*?)\*", r"\1", value)
+    value = re.sub(r"^#{1,6}\s*", "", value, flags=re.MULTILINE)
+    value = value.replace("• ", "- ")
+    value = value.replace("– ", "- ")
+    value = re.sub(r"\n{3,}", "\n\n", value)
+    return value
+
+
+def normalize_content_response(text):
+    """Keep generated content in plain text for the UI."""
+    value = str(text or "").strip()
+    value = re.sub(r"\*\*(.*?)\*\*", r"\1", value)
+    value = re.sub(r"\*(.*?)\*", r"\1", value)
+    value = re.sub(r"\n{3,}", "\n\n", value)
+    return value
 
 
 def build_chat_fallback(user_message, history_items):

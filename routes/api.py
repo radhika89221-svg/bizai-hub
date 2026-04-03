@@ -18,7 +18,11 @@ from ai_services import (
     build_sentiment_prompt,
     detect_prompt_injection,
     find_cached_image_url,
+    get_chat_models,
+    get_content_models,
     make_image_cache_key,
+    normalize_chat_response,
+    normalize_content_response,
     parse_optional_text,
     parse_sales_input,
     parse_image_dimensions,
@@ -254,8 +258,11 @@ def generate_content():
         prompt = build_content_prompt(content_type, topic, details, variation_mode, previous_output)
         result = ask_ai(
             prompt,
-            fallback_text=build_content_fallback(content_type, topic, details, variation_mode)
+            models=get_content_models(),
+            fallback_text=build_content_fallback(content_type, topic, details, variation_mode),
+            max_tokens=420
         )
+        result = normalize_content_response(result)
         save_history_entry(
             'content-writer',
             topic,
@@ -299,8 +306,11 @@ def chat():
         prompt = build_chat_prompt(user_message, history)
         result = ask_ai(
             prompt,
-            fallback_text=build_chat_fallback(user_message, history)
+            models=get_chat_models(),
+            fallback_text=build_chat_fallback(user_message, history),
+            max_tokens=320
         )
+        result = normalize_chat_response(result)
         save_history_entry('chatbot', user_message, result)
         consume_quota()
         return json_success(result=result, context_messages_used=min(len(history), 4))

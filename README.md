@@ -87,7 +87,9 @@ Notes:
 - `DATABASE_URL` is optional. If omitted, the app uses a local SQLite database.
 - `RATELIMIT_STORAGE_URI` is optional. Default is in-memory limiter storage for development.
 - `OPENROUTER_TEXT_MODEL` is optional. It sets the first default text model used for AI text responses.
-- `OPENROUTER_TEXT_MODELS` is optional. It lets you define a comma-separated fallback list, for example `qwen/qwen3.6-plus:free,openai/gpt-oss-20b:free`.
+- `OPENROUTER_TEXT_MODELS` is optional. It lets you define a comma-separated fallback list, for example `stepfun/step-3.5-flash:free,qwen/qwen3.6-plus:free`.
+- `OPENROUTER_CHAT_MODELS` is optional. It overrides the preferred model order for the business advisor chat tool.
+- `OPENROUTER_CONTENT_MODELS` is optional. It overrides the preferred model order for the content writer tool.
 - Do not commit `.env`.
 
 ## Install Locally
