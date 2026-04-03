@@ -415,11 +415,18 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                const rawText = await response.text();
+                const contentType = response.headers.get('content-type') || '';
+                let data = null;
 
-                const data = await response.json();
+                if (contentType.includes('application/json')) {
+                    data = JSON.parse(rawText);
+                } else {
+                    throw new Error(`Server returned unexpected response (not JSON). Raw: ${rawText.substring(0, 160)}`);
+                }
 
                 if (data.success) {
-                    document.getElementById('contentType').value = contentType;
+                    document.getElementById('contentType').value = payload.content_type;
                     document.getElementById('topic').value = topic;
                     document.getElementById('details').value = details;
                     lastPayload = payload;
@@ -434,7 +441,11 @@
                     showStatus(data.error || 'Something went wrong while generating content.');
                 }
             } catch (error) {
-                showStatus('Error connecting to server: ' + error.message);
+                if (error.message.includes('not JSON') || error.message.includes('unexpected')) {
+                    showStatus('The server returned an error page instead of JSON. This usually means the backend request timed out or crashed.');
+                } else {
+                    showStatus('Error connecting to server: ' + error.message);
+                }
             }
 
             document.getElementById('loading').style.display = 'none';

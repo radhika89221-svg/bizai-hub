@@ -134,7 +134,7 @@ pip install -r requirements.txt
 - Start command:
 
 ```text
-gunicorn app:app
+gunicorn app:app --timeout 120
 ```
 
 - Required environment variables on Render:
