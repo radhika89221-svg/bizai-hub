@@ -76,6 +76,7 @@ SECRET_KEY=your_secret_key
 DATABASE_URL=optional_database_url
 RATELIMIT_STORAGE_URI=optional_rate_limit_storage
 OPENROUTER_TEXT_MODEL=optional_openrouter_text_model
+OPENROUTER_TEXT_MODELS=optional_comma_separated_model_fallbacks
 ```
 
 Notes:
@@ -85,7 +86,8 @@ Notes:
 - `SECRET_KEY` is used for login sessions and flash messages.
 - `DATABASE_URL` is optional. If omitted, the app uses a local SQLite database.
 - `RATELIMIT_STORAGE_URI` is optional. Default is in-memory limiter storage for development.
-- `OPENROUTER_TEXT_MODEL` is optional. It sets the single default text model used for AI text responses.
+- `OPENROUTER_TEXT_MODEL` is optional. It sets the first default text model used for AI text responses.
+- `OPENROUTER_TEXT_MODELS` is optional. It lets you define a comma-separated fallback list, for example `qwen/qwen3.6-plus:free,openai/gpt-oss-20b:free`.
 - Do not commit `.env`.
 
 ## Install Locally

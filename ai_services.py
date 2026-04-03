@@ -19,10 +19,14 @@ from logging_utils import log_event
 
 DEFAULT_REQUEST_TIMEOUT = 60
 IMAGE_REQUEST_TIMEOUT = 120
-DEFAULT_TEXT_MODEL = os.environ.get(
-    "OPENROUTER_TEXT_MODEL",
-    "qwen/qwen3-8b:free"
-)
+DEFAULT_TEXT_MODELS = [
+    model.strip()
+    for model in os.environ.get(
+        "OPENROUTER_TEXT_MODELS",
+        os.environ.get("OPENROUTER_TEXT_MODEL", "qwen/qwen3.6-plus:free,openai/gpt-oss-20b:free,meta-llama/llama-3.3-70b-instruct:free")
+    ).split(",")
+    if model.strip()
+]
 PROMPT_INJECTION_PATTERNS = [
     "ignore previous instructions",
     "ignore all previous instructions",
@@ -73,6 +77,15 @@ def get_openrouter_key():
 def get_hf_token():
     """Read the current Hugging Face token from the environment."""
     return os.environ.get("HF_TOKEN")
+
+
+def get_text_models(models=None):
+    """Return the requested text models, falling back to configured defaults."""
+    if models:
+        return [model.strip() for model in models if model and model.strip()]
+    if DEFAULT_TEXT_MODELS:
+        return DEFAULT_TEXT_MODELS
+    return ["qwen/qwen3.6-plus:free"]
 
 
 def require_text(data, field_name, label=None, max_length=4000):
@@ -147,47 +160,57 @@ def ask_ai(prompt, models=None, fallback_text=None):
             "HTTP-Referer": "http://localhost:5000",
             "X-Title": "BizGenius AI"
         }
+        requested_models = get_text_models(models)
+        errors = []
 
-        model = (models or [DEFAULT_TEXT_MODEL])[0]
-        log_event('ai_request_started', model=model)
-        response = requests.post(
-            url,
-            headers=headers,
-            json={"model": model, "messages": [{"role": "user", "content": prompt}]},
-            timeout=DEFAULT_REQUEST_TIMEOUT
-        )
-        result = response.json()
-
-        if 'choices' in result and len(result['choices']) > 0:
-            log_event('ai_request_succeeded', model=model)
-            return result['choices'][0]['message']['content']
-
-        if 'error' in result:
-            error_text = result['error'].get('message', str(result['error']))
-            log_event(
-                'ai_request_failed',
-                model=model,
-                status_code=response.status_code,
-                error=error_text
+        for model in requested_models:
+            log_event('ai_request_started', model=model)
+            response = requests.post(
+                url,
+                headers=headers,
+                json={"model": model, "messages": [{"role": "user", "content": prompt}]},
+                timeout=DEFAULT_REQUEST_TIMEOUT
             )
-            return f"OpenRouter error: {error_text}"
+            result = response.json()
 
-        if response.status_code != 200:
-            log_event(
-                'ai_request_failed',
-                model=model,
-                status_code=response.status_code,
-                error='Unexpected status code from OpenRouter'
-            )
-            api_error = result.get('message') or result.get('detail') or 'Unknown OpenRouter API error.'
-            return f"OpenRouter status {response.status_code}: {api_error}"
+            if 'choices' in result and len(result['choices']) > 0:
+                log_event('ai_request_succeeded', model=model)
+                return result['choices'][0]['message']['content']
 
-        return fallback_text or "AI is temporarily busy. Please try again in a minute."
+            if 'error' in result:
+                error_text = result['error'].get('message', str(result['error']))
+                errors.append(f"{model}: {error_text}")
+                log_event(
+                    'ai_request_failed',
+                    model=model,
+                    status_code=response.status_code,
+                    error=error_text
+                )
+                continue
+
+            if response.status_code != 200:
+                api_error = result.get('message') or result.get('detail') or 'Unknown OpenRouter API error.'
+                errors.append(f"{model}: {api_error}")
+                log_event(
+                    'ai_request_failed',
+                    model=model,
+                    status_code=response.status_code,
+                    error='Unexpected status code from OpenRouter'
+                )
+                continue
+
+            errors.append(f"{model}: Empty response from OpenRouter.")
+
+        if fallback_text:
+            return fallback_text
+        if errors:
+            return "OpenRouter error: " + " | ".join(errors)
+        return "AI is temporarily busy. Please try again in a minute."
     except requests.exceptions.Timeout:
-        log_event('ai_request_timeout', model=(models or [DEFAULT_TEXT_MODEL])[0])
+        log_event('ai_request_timeout', model=get_text_models(models)[0])
         return fallback_text or "Request timed out. Please try again."
     except Exception as exc:
-        log_event('ai_request_exception', model=(models or [DEFAULT_TEXT_MODEL])[0], error=str(exc))
+        log_event('ai_request_exception', model=get_text_models(models)[0], error=str(exc))
         return fallback_text or f"Error: {str(exc)}"
 
 

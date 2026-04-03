@@ -23,7 +23,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['RATELIMIT_STORAGE_URI'] = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')
 app.config['OPENROUTER_TEXT_MODEL'] = os.environ.get(
     'OPENROUTER_TEXT_MODEL',
-    'qwen/qwen3-8b:free'
+    'qwen/qwen3.6-plus:free'
 )
 
 db.init_app(app)
