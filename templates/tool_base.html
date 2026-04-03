@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BizGenius AI{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 20px 50px;
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 1px solid #222;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s, background-color 0.3s, border-color 0.3s;
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+            border-color: rgba(102, 126, 234, 0.25);
+            background: rgba(102, 126, 234, 0.08);
+        }
+
+        .nav-links a.active {
+            color: #ffffff;
+            border-color: rgba(102, 126, 234, 0.35);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.28), rgba(118, 75, 162, 0.18));
+        }
+
+        .page-shell {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .back-btn:hover {
+            color: #764ba2;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title h1 {
+            font-size: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .page-title p {
+            color: #888;
+            font-size: 18px;
+        }
+
+        .account-bar {
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 1px solid rgba(102, 126, 234, 0.24);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.14), rgba(118, 75, 162, 0.08));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .account-copy {
+            color: #d7ddff;
+            line-height: 1.5;
+        }
+
+        .account-copy strong {
+            color: #ffffff;
+        }
+
+        .account-link {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.06);
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .account-link:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .status-box {
+            display: none;
+            margin-bottom: 20px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            background: #151515;
+            color: #ddd;
+            line-height: 1.5;
+        }
+
+        .status-box.error {
+            border-color: rgba(244, 67, 54, 0.45);
+            color: #ff8a80;
+        }
+
+        .status-box.success {
+            border-color: rgba(76, 175, 80, 0.45);
+            color: #9be7a6;
+        }
+
+        .flash-stack {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .flash-box {
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            background: #151515;
+            color: #ddd;
+        }
+
+        .flash-box.success {
+            border-color: rgba(76, 175, 80, 0.45);
+            color: #9be7a6;
+        }
+
+        .flash-box.error {
+            border-color: rgba(244, 67, 54, 0.45);
+            color: #ff8a80;
+        }
+
+        .nav-form {
+            display: inline;
+        }
+
+        .nav-button {
+            color: #ccc;
+            background: transparent;
+            text-decoration: none;
+            transition: color 0.3s, background-color 0.3s, border-color 0.3s;
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .nav-button:hover {
+            color: #667eea;
+            border-color: rgba(102, 126, 234, 0.25);
+            background: rgba(102, 126, 234, 0.08);
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 15px 20px;
+                align-items: flex-start;
+            }
+
+            .page-shell {
+                margin: 28px auto;
+            }
+
+            .page-title h1 {
+                font-size: 28px;
+            }
+
+            .nav-links {
+                gap: 10px;
+                font-size: 14px;
+                justify-content: flex-start;
+            }
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="logo">BizGenius AI</a>
+        <ul class="nav-links">
+            <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a></li>
+            <li><a href="/content-writer" class="{% if request.path == '/content-writer' %}active{% endif %}">Content Writer</a></li>
+            <li><a href="/image-generator" class="{% if request.path == '/image-generator' %}active{% endif %}">Image Generator</a></li>
+            <li><a href="/audio-tools" class="{% if request.path == '/audio-tools' %}active{% endif %}">Audio Tools</a></li>
+            <li><a href="/chatbot" class="{% if request.path == '/chatbot' %}active{% endif %}">Chatbot</a></li>
+            <li><a href="/sentiment" class="{% if request.path == '/sentiment' %}active{% endif %}">Sentiment</a></li>
+            <li><a href="/sales-predictor" class="{% if request.path == '/sales-predictor' %}active{% endif %}">Sales Predictor</a></li>
+            {% if current_user.is_authenticated %}
+            <li><a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">Dashboard</a></li>
+            <li>
+                <form method="post" action="/logout" class="nav-form">
+                    <button type="submit" class="nav-button">Logout</button>
+                </form>
+            </li>
+            {% else %}
+            <li><a href="/login" class="{% if request.path == '/login' %}active{% endif %}">Login</a></li>
+            <li><a href="/register" class="{% if request.path == '/register' %}active{% endif %}">Register</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <main class="{% block shell_class %}page-shell{% endblock %}">
+        <a href="/" class="back-btn">&larr; Back to Home</a>
+
+        {% if current_user.is_authenticated and request.path != '/dashboard' %}
+        <div class="account-bar">
+            <div class="account-copy">
+                <strong>{{ current_user.name }}</strong> is on the {{ current_user.plan|title }} plan.
+                {{ current_user.quota_remaining() }} of {{ current_user.daily_quota }} actions remain today.
+            </div>
+            <a href="/dashboard" class="account-link">Open Dashboard</a>
+        </div>
+        {% endif %}
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack">
+            {% for category, message in messages %}
+            <div class="flash-box {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block header %}
+        <div class="page-title">
+            <h1>{% block heading %}{% endblock %}</h1>
+            <p>{% block subtitle %}{% endblock %}</p>
+        </div>
+        {% endblock %}
+
+        {% block body %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,10 @@
+flask
+flask-login
+flask-sqlalchemy
+flask-limiter
+textblob
+requests
+gunicorn
+python-dotenv
+huggingface_hub
+Pillow

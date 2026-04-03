@@ -1,0 +1,416 @@
+{% extends "tool_base.html" %}
+
+{% block title %}AI Content Writer - BizGenius AI{% endblock %}
+{% block heading %}AI Content Writer{% endblock %}
+{% block subtitle %}Generate professional business content instantly with AI{% endblock %}
+
+{% block extra_css %}
+        .form-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #ccc;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .form-group select option {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        /* GENERATE BUTTON */
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* LOADING */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+        .loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #333;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* RESULT SECTION */
+        .result-section {
+            display: none;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .result-section h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .result-content {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 25px;
+            line-height: 1.8;
+            color: #ddd;
+            font-size: 16px;
+            white-space: pre-wrap;
+        }
+
+        /* COPY BUTTON */
+        .copy-btn {
+            margin-top: 15px;
+            padding: 12px 25px;
+            background: transparent;
+            border: 1px solid #667eea;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .history-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 28px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .history-header h3 {
+            color: #fff;
+            font-size: 20px;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .history-btn {
+            padding: 10px 16px;
+            background: transparent;
+            color: #ccc;
+            border: 1px solid #333;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .history-btn:hover {
+            border-color: #667eea;
+            color: #fff;
+        }
+
+        .history-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .history-empty {
+            color: #888;
+            padding: 18px 0;
+        }
+
+        .history-item {
+            background: #181818;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .history-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #888;
+            flex-wrap: wrap;
+        }
+
+        .history-input {
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .history-output {
+            color: #cfcfcf;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            max-height: 140px;
+            overflow: auto;
+        }
+
+        .form-section { padding: 25px; }
+{% endblock %}
+
+{% block body %}
+    <div class="form-section">
+            <div class="form-group">
+                <label>Content Type</label>
+                <select id="contentType">
+                    <option value="Marketing Email">Marketing Email</option>
+                    <option value="Product Description">Product Description</option>
+                    <option value="Social Media Caption">Social Media Caption</option>
+                    <option value="Blog Post Introduction">Blog Post Introduction</option>
+                    <option value="Business Proposal">Business Proposal</option>
+                    <option value="Press Release">Press Release</option>
+                    <option value="Customer Thank You Note">Customer Thank You Note</option>
+                    <option value="Job Description">Job Description</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Topic / Product / Business Name</label>
+                <input type="text" id="topic" 
+                       placeholder="e.g., Launch of our new fitness app 'FitLife Pro'">
+            </div>
+
+            <div class="form-group">
+                <label>Additional Details (Optional)</label>
+                <textarea id="details" 
+                          placeholder="e.g., Target audience is young professionals, tone should be friendly and energetic"></textarea>
+            </div>
+
+            <button class="generate-btn" id="generateBtn" onclick="generateContent()">
+                Generate Content
+            </button>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p style="color: #888;">AI is writing your content...</p>
+    </div>
+
+    <div class="status-box" id="statusBox"></div>
+
+    <div class="result-section" id="resultSection">
+        <h3>Generated Content</h3>
+        <div class="result-content" id="resultContent"></div>
+        <button class="copy-btn" onclick="copyContent()">Copy to Clipboard</button>
+    </div>
+
+    <div class="history-section">
+        <div class="history-header">
+            <h3>Recent Content History</h3>
+            <div class="history-actions">
+                <button class="history-btn" onclick="loadHistory()">Refresh</button>
+                <button class="history-btn" onclick="clearHistory()">Clear History</button>
+            </div>
+        </div>
+        <div class="history-list" id="historyList">
+            <div class="history-empty">No saved generations yet.</div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function formatDate(value) {
+            const date = new Date(value.replace(' ', 'T'));
+            return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+        }
+
+        function showStatus(message, type = 'error') {
+            const box = document.getElementById('statusBox');
+            box.className = `status-box ${type}`;
+            box.textContent = message;
+            box.style.display = 'block';
+        }
+
+        function hideStatus() {
+            const box = document.getElementById('statusBox');
+            box.style.display = 'none';
+            box.textContent = '';
+            box.className = 'status-box';
+        }
+
+        function renderHistory(items) {
+            const list = document.getElementById('historyList');
+            if (!items.length) {
+                list.innerHTML = '<div class="history-empty">No saved generations yet.</div>';
+                return;
+            }
+
+            list.innerHTML = items.map((item) => `
+                <div class="history-item">
+                    <div class="history-meta">
+                        <span>${item.meta?.content_type || 'Generated content'}</span>
+                        <span>${formatDate(item.created_at)}</span>
+                    </div>
+                    <div class="history-input">${item.input_text}</div>
+                    <div class="history-output">${item.output_text}</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history/content-writer?limit=8');
+                const data = await response.json();
+                if (data.success) {
+                    renderHistory(data.items || []);
+                }
+            } catch (error) {
+                console.error('History load failed:', error);
+            }
+        }
+
+        async function clearHistory() {
+            try {
+                const response = await fetch('/api/history/content-writer/clear', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    renderHistory([]);
+                    showStatus('Content history cleared.', 'success');
+                }
+            } catch (error) {
+                showStatus('Could not clear history right now.');
+            }
+        }
+
+        async function generateContent() {
+            const contentType = document.getElementById('contentType').value;
+            const topic = document.getElementById('topic').value.trim();
+            const details = document.getElementById('details').value.trim();
+
+            if (!topic) {
+                showStatus('Please enter a topic.');
+                return;
+            }
+
+            // Show loading
+            hideStatus();
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/generate-content', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content_type: contentType,
+                        topic: topic + (details ? '. Additional details: ' + details : '')
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('resultContent').textContent = data.result;
+                    document.getElementById('resultSection').style.display = 'block';
+                    loadHistory();
+                } else {
+                    showStatus(data.error || 'Something went wrong while generating content.');
+                }
+            } catch (error) {
+                showStatus('Error connecting to server: ' + error.message);
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('generateBtn').disabled = false;
+        }
+
+        function copyContent() {
+            const content = document.getElementById('resultContent').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
+                showStatus('Content copied to clipboard.', 'success');
+            });
+        }
+
+        loadHistory();
+    </script>
+{% endblock %}
