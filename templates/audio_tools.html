@@ -1,134 +1,167 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Audio Tools - BizGenius AI</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a0a; color: #ffffff; min-height: 100vh;
-        }
-        .navbar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 50px; background: rgba(10,10,10,0.95); border-bottom: 1px solid #222;
-        }
-        .logo {
-            font-size: 24px; font-weight: bold;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-decoration: none;
-        }
-        .nav-links { display: flex; list-style: none; gap: 30px; }
-        .nav-links a { color: #ccc; text-decoration: none; }
-        .nav-links a:hover { color: #667eea; }
+{% extends "tool_base.html" %}
 
-        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-        .page-title { text-align: center; margin-bottom: 40px; }
-        .page-title h1 {
-            font-size: 40px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-        .page-title p { color: #888; font-size: 18px; }
+{% block title %}AI Audio Tools - BizGenius AI{% endblock %}
+{% block heading %}AI Audio Tools{% endblock %}
+{% block subtitle %}Text-to-Speech, Speech-to-Text, and AI content generation tools{% endblock %}
 
+{% block extra_css %}
         .tools-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr);
-            gap: 25px; margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
         }
 
         .tool-card {
-            background: #111; border: 1px solid #222;
-            border-radius: 20px; padding: 30px;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 30px;
             transition: transform 0.3s, border-color 0.3s;
         }
-        .tool-card:hover { transform: translateY(-5px); border-color: #667eea; }
-        .tool-card .icon { font-size: 40px; margin-bottom: 15px; }
-        .tool-card h3 { color: #667eea; margin-bottom: 10px; font-size: 20px; }
-        .tool-card p { color: #888; line-height: 1.6; margin-bottom: 20px; font-size: 14px; }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+
+        .tool-card .icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .tool-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .tool-card p {
+            color: #888;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
 
         .tool-input {
-            width: 100%; padding: 12px; background: #1a1a1a;
-            border: 1px solid #333; border-radius: 10px;
-            color: #fff; font-size: 14px; outline: none;
-            margin-bottom: 15px; resize: vertical;
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 15px;
+            resize: vertical;
         }
-        .tool-input:focus { border-color: #667eea; }
+
+        .tool-input:focus {
+            border-color: #667eea;
+        }
 
         .tool-btn {
-            width: 100%; padding: 14px;
+            width: 100%;
+            padding: 14px;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white; border: none; border-radius: 10px;
-            font-size: 16px; cursor: pointer; transition: transform 0.3s;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s;
         }
-        .tool-btn:hover { transform: translateY(-2px); }
-        .tool-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .tool-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .tool-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
         .tool-btn-stop {
-            width: 100%; padding: 14px;
-            background: #333; color: white; border: none;
-            border-radius: 10px; font-size: 16px; cursor: pointer;
-            margin-top: 10px; transition: background 0.3s;
+            width: 100%;
+            padding: 14px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.3s;
         }
-        .tool-btn-stop:hover { background: #555; }
+
+        .tool-btn-stop:hover {
+            background: #555;
+        }
 
         .tool-result {
-            display: none; margin-top: 15px; padding: 15px;
-            background: #1a1a1a; border: 1px solid #333;
-            border-radius: 10px; color: #ddd; font-size: 14px;
-            line-height: 1.6; white-space: pre-wrap; max-height: 400px;
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 10px;
+            color: #ddd;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 400px;
             overflow-y: auto;
         }
 
         .loading-small {
-            display: none; text-align: center; padding: 15px; color: #888;
+            display: none;
+            text-align: center;
+            padding: 15px;
+            color: #888;
         }
-        .loading-small .mini-spinner {
-            width: 24px; height: 24px; border: 3px solid #333;
-            border-top: 3px solid #667eea; border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block; vertical-align: middle; margin-right: 10px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .back-btn { display: inline-block; margin-bottom: 20px; color: #667eea; text-decoration: none; }
+        .loading-small .mini-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #333;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
 
         .copy-small {
-            margin-top: 10px; padding: 8px 16px;
-            background: transparent; border: 1px solid #667eea;
-            color: #667eea; border-radius: 6px; cursor: pointer;
-            font-size: 12px; transition: all 0.3s;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid #667eea;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
         }
-        .copy-small:hover { background: #667eea; color: white; }
+
+        .copy-small:hover {
+            background: #667eea;
+            color: white;
+        }
 
         @media (max-width: 768px) {
-            .tools-grid { grid-template-columns: 1fr; }
-            .navbar { padding: 15px 20px; }
-            .page-title h1 { font-size: 28px; }
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
         }
-    </style>
-</head>
-<body>
+{% endblock %}
 
-    <nav class="navbar">
-        <a href="/" class="logo">BizGenius AI</a>
-        <ul class="nav-links">
-            <li><a href="/">Home</a></li>
-            <li><a href="/content-writer">Content Writer</a></li>
-            <li><a href="/chatbot">Chatbot</a></li>
-            <li><a href="/sentiment">Sentiment</a></li>
-        </ul>
-    </nav>
-
-    <div class="container">
-        <a href="/" class="back-btn">&larr; Back to Home</a>
-
-        <div class="page-title">
-            <h1>AI Audio Tools</h1>
-            <p>Text-to-Speech, Speech-to-Text, and AI content generation tools</p>
-        </div>
+{% block body %}
+        <div class="status-box" id="statusBox"></div>
 
         <div class="tools-grid">
             <!-- TEXT TO SPEECH -->
@@ -193,9 +226,24 @@
                 <button class="copy-small" id="notesCopy" style="display:none;" onclick="copyText('notesResult')">Copy Notes</button>
             </div>
         </div>
-    </div>
+{% endblock %}
 
+{% block scripts %}
     <script>
+        function showStatus(message, type = 'error') {
+            const box = document.getElementById('statusBox');
+            box.className = `status-box ${type}`;
+            box.textContent = message;
+            box.style.display = 'block';
+        }
+
+        function hideStatus() {
+            const box = document.getElementById('statusBox');
+            box.style.display = 'none';
+            box.textContent = '';
+            box.className = 'status-box';
+        }
+
         // ===== TEXT TO SPEECH =====
         function loadVoices() {
             const voices = speechSynthesis.getVoices();
@@ -219,7 +267,8 @@
 
         function speakText() {
             const text = document.getElementById('ttsText').value;
-            if (!text) { alert('Enter text first!'); return; }
+            if (!text) { showStatus('Enter text first.'); return; }
+            hideStatus();
             speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             const voices = speechSynthesis.getVoices();
@@ -242,10 +291,11 @@
             }
 
             if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert('Speech recognition not supported. Please use Google Chrome.');
+                showStatus('Speech recognition is not supported. Please use Google Chrome.');
                 return;
             }
 
+            hideStatus();
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.continuous = true;
@@ -319,8 +369,9 @@
         // PODCAST SCRIPT
         async function generatePodcast() {
             const topic = document.getElementById('podcastTopic').value.trim();
-            if (!topic) { alert('Enter a topic!'); return; }
+            if (!topic) { showStatus('Enter a topic for the podcast script.'); return; }
 
+            hideStatus();
             document.getElementById('podcastBtn').disabled = true;
             document.getElementById('podcastLoading').style.display = 'block';
             document.getElementById('podcastResult').style.display = 'none';
@@ -342,8 +393,9 @@
         // PRESENTATION NOTES
         async function generateNotes() {
             const topic = document.getElementById('presentationTopic').value.trim();
-            if (!topic) { alert('Enter a topic!'); return; }
+            if (!topic) { showStatus('Enter a topic for the speaker notes.'); return; }
 
+            hideStatus();
             document.getElementById('notesBtn').disabled = true;
             document.getElementById('notesLoading').style.display = 'block';
             document.getElementById('notesResult').style.display = 'none';
@@ -366,10 +418,8 @@
         function copyText(elementId) {
             const text = document.getElementById(elementId).textContent;
             navigator.clipboard.writeText(text).then(() => {
-                alert('Copied to clipboard!');
+                showStatus('Copied to clipboard.', 'success');
             });
         }
     </script>
-
-</body>
-</html>
+{% endblock %}

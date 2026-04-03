@@ -1,84 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Content Writer - BizGenius AI</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "tool_base.html" %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
-            min-height: 100vh;
-        }
+{% block title %}AI Content Writer - BizGenius AI{% endblock %}
+{% block heading %}AI Content Writer{% endblock %}
+{% block subtitle %}Generate professional business content instantly with AI{% endblock %}
 
-        /* NAVBAR */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 50px;
-            background: rgba(10, 10, 10, 0.95);
-            border-bottom: 1px solid #222;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 30px;
-        }
-
-        .nav-links a {
-            color: #ccc;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: #667eea;
-        }
-
-        /* MAIN CONTAINER */
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .page-title {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .page-title h1 {
-            font-size: 40px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-
-        .page-title p {
-            color: #888;
-            font-size: 18px;
-        }
-
-        /* FORM SECTION */
+{% block extra_css %}
         .form-section {
             background: #111;
             border: 1px solid #222;
@@ -160,7 +86,6 @@
             text-align: center;
             padding: 30px;
         }
-
         .loading .spinner {
             width: 40px;
             height: 40px;
@@ -220,50 +145,94 @@
             color: white;
         }
 
-        /* BACK BUTTON */
-        .back-btn {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #667eea;
-            text-decoration: none;
-            font-size: 16px;
-            transition: color 0.3s;
+        .history-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 28px;
         }
 
-        .back-btn:hover {
-            color: #764ba2;
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
         }
 
-        @media (max-width: 768px) {
-            .navbar { padding: 15px 20px; }
-            .form-section { padding: 25px; }
-            .page-title h1 { font-size: 28px; }
+        .history-header h3 {
+            color: #fff;
+            font-size: 20px;
         }
-    </style>
-</head>
-<body>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <a href="/" class="logo">BizGenius AI</a>
-        <ul class="nav-links">
-            <li><a href="/">Home</a></li>
-            <li><a href="/content-writer">Content Writer</a></li>
-            <li><a href="/chatbot">Chatbot</a></li>
-            <li><a href="/sentiment">Sentiment</a></li>
-        </ul>
-    </nav>
+        .history-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
 
-    <div class="container">
-        <a href="/" class="back-btn">&larr; Back to Home</a>
+        .history-btn {
+            padding: 10px 16px;
+            background: transparent;
+            color: #ccc;
+            border: 1px solid #333;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
 
-        <div class="page-title">
-            <h1>AI Content Writer</h1>
-            <p>Generate professional business content instantly with AI</p>
-        </div>
+        .history-btn:hover {
+            border-color: #667eea;
+            color: #fff;
+        }
 
-        <!-- FORM -->
-        <div class="form-section">
+        .history-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .history-empty {
+            color: #888;
+            padding: 18px 0;
+        }
+
+        .history-item {
+            background: #181818;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .history-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #888;
+            flex-wrap: wrap;
+        }
+
+        .history-input {
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .history-output {
+            color: #cfcfcf;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            max-height: 140px;
+            overflow: auto;
+        }
+
+        .form-section { padding: 25px; }
+{% endblock %}
+
+{% block body %}
+    <div class="form-section">
             <div class="form-group">
                 <label>Content Type</label>
                 <select id="contentType">
@@ -293,34 +262,114 @@
             <button class="generate-btn" id="generateBtn" onclick="generateContent()">
                 Generate Content
             </button>
-        </div>
-
-        <!-- LOADING -->
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p style="color: #888;">AI is writing your content...</p>
-        </div>
-
-        <!-- RESULT -->
-        <div class="result-section" id="resultSection">
-            <h3>Generated Content</h3>
-            <div class="result-content" id="resultContent"></div>
-            <button class="copy-btn" onclick="copyContent()">Copy to Clipboard</button>
-        </div>
     </div>
 
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p style="color: #888;">AI is writing your content...</p>
+    </div>
+
+    <div class="status-box" id="statusBox"></div>
+
+    <div class="result-section" id="resultSection">
+        <h3>Generated Content</h3>
+        <div class="result-content" id="resultContent"></div>
+        <button class="copy-btn" onclick="copyContent()">Copy to Clipboard</button>
+    </div>
+
+    <div class="history-section">
+        <div class="history-header">
+            <h3>Recent Content History</h3>
+            <div class="history-actions">
+                <button class="history-btn" onclick="loadHistory()">Refresh</button>
+                <button class="history-btn" onclick="clearHistory()">Clear History</button>
+            </div>
+        </div>
+        <div class="history-list" id="historyList">
+            <div class="history-empty">No saved generations yet.</div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
     <script>
+        function formatDate(value) {
+            const date = new Date(value.replace(' ', 'T'));
+            return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+        }
+
+        function showStatus(message, type = 'error') {
+            const box = document.getElementById('statusBox');
+            box.className = `status-box ${type}`;
+            box.textContent = message;
+            box.style.display = 'block';
+        }
+
+        function hideStatus() {
+            const box = document.getElementById('statusBox');
+            box.style.display = 'none';
+            box.textContent = '';
+            box.className = 'status-box';
+        }
+
+        function renderHistory(items) {
+            const list = document.getElementById('historyList');
+            if (!items.length) {
+                list.innerHTML = '<div class="history-empty">No saved generations yet.</div>';
+                return;
+            }
+
+            list.innerHTML = items.map((item) => `
+                <div class="history-item">
+                    <div class="history-meta">
+                        <span>${item.meta?.content_type || 'Generated content'}</span>
+                        <span>${formatDate(item.created_at)}</span>
+                    </div>
+                    <div class="history-input">${item.input_text}</div>
+                    <div class="history-output">${item.output_text}</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history/content-writer?limit=8');
+                const data = await response.json();
+                if (data.success) {
+                    renderHistory(data.items || []);
+                }
+            } catch (error) {
+                console.error('History load failed:', error);
+            }
+        }
+
+        async function clearHistory() {
+            try {
+                const response = await fetch('/api/history/content-writer/clear', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    renderHistory([]);
+                    showStatus('Content history cleared.', 'success');
+                }
+            } catch (error) {
+                showStatus('Could not clear history right now.');
+            }
+        }
+
         async function generateContent() {
             const contentType = document.getElementById('contentType').value;
-            const topic = document.getElementById('topic').value;
-            const details = document.getElementById('details').value;
+            const topic = document.getElementById('topic').value.trim();
+            const details = document.getElementById('details').value.trim();
 
             if (!topic) {
-                alert('Please enter a topic!');
+                showStatus('Please enter a topic.');
                 return;
             }
 
             // Show loading
+            hideStatus();
             document.getElementById('generateBtn').disabled = true;
             document.getElementById('loading').style.display = 'block';
             document.getElementById('resultSection').style.display = 'none';
@@ -340,11 +389,12 @@
                 if (data.success) {
                     document.getElementById('resultContent').textContent = data.result;
                     document.getElementById('resultSection').style.display = 'block';
+                    loadHistory();
                 } else {
-                    alert('Error: ' + data.error);
+                    showStatus(data.error || 'Something went wrong while generating content.');
                 }
             } catch (error) {
-                alert('Error connecting to server: ' + error.message);
+                showStatus('Error connecting to server: ' + error.message);
             }
 
             document.getElementById('loading').style.display = 'none';
@@ -357,9 +407,10 @@
                 const btn = document.querySelector('.copy-btn');
                 btn.textContent = 'Copied!';
                 setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
+                showStatus('Content copied to clipboard.', 'success');
             });
         }
-    </script>
 
-</body>
-</html>
+        loadHistory();
+    </script>
+{% endblock %}

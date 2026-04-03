@@ -1,59 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Business Chatbot - BizGenius AI</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "tool_base.html" %}
 
+{% block title %}AI Business Chatbot - BizGenius AI{% endblock %}
+{% block shell_class %}chat-container{% endblock %}
+{% block heading %}AI Business Advisor{% endblock %}
+{% block subtitle %}Ask me anything about business, marketing, strategy & growth{% endblock %}
+
+{% block extra_css %}
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        /* NAVBAR */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 50px;
-            background: rgba(10, 10, 10, 0.95);
-            border-bottom: 1px solid #222;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 30px;
-        }
-
-        .nav-links a {
-            color: #ccc;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover { color: #667eea; }
-
-        /* CHAT CONTAINER */
         .chat-container {
             flex: 1;
             max-width: 900px;
@@ -222,43 +180,96 @@
             color: #667eea;
         }
 
-        /* BACK BUTTON */
-        .back-btn {
-            color: #667eea;
-            text-decoration: none;
+        .history-panel {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid #222;
+        }
+
+        .history-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .history-head h3 {
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .history-btn {
+            padding: 8px 14px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 999px;
+            color: #ccc;
+            cursor: pointer;
+        }
+
+        .history-btn:hover {
+            border-color: #667eea;
+            color: #fff;
+        }
+
+        .history-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .history-empty {
+            color: #888;
             font-size: 14px;
-            padding: 10px 0;
-            display: inline-block;
+        }
+
+        .history-item {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+        .history-meta {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .history-question {
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .history-answer {
+            color: #ccc;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            max-height: 110px;
+            overflow: auto;
         }
 
         @media (max-width: 768px) {
-            .navbar { padding: 15px 20px; }
             .message { max-width: 90%; }
         }
-    </style>
-</head>
-<body>
+{% endblock %}
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <a href="/" class="logo">BizGenius AI</a>
-        <ul class="nav-links">
-            <li><a href="/">Home</a></li>
-            <li><a href="/content-writer">Content Writer</a></li>
-            <li><a href="/chatbot">Chatbot</a></li>
-            <li><a href="/sentiment">Sentiment</a></li>
-        </ul>
-    </nav>
+{% block header %}
+    <div class="chat-header">
+        <h1>AI Business Advisor</h1>
+        <p>Ask me anything about business, marketing, strategy & growth</p>
+    </div>
+{% endblock %}
 
-    <div class="chat-container">
-        <a href="/" class="back-btn">&larr; Back to Home</a>
-        
-        <div class="chat-header">
-            <h1>AI Business Advisor</h1>
-            <p>Ask me anything about business, marketing, strategy & growth</p>
-        </div>
-
-        <!-- QUICK QUESTIONS -->
+{% block body %}
         <div class="quick-questions">
             <button class="quick-btn" onclick="askQuick(this.textContent)">How to start a small business?</button>
             <button class="quick-btn" onclick="askQuick(this.textContent)">Best marketing strategies 2025</button>
@@ -266,7 +277,6 @@
             <button class="quick-btn" onclick="askQuick(this.textContent)">Social media growth tips</button>
         </div>
 
-        <!-- MESSAGES -->
         <div class="messages" id="messages">
             <div class="message bot-msg">
                 <div class="bot-label">BizGenius AI</div>
@@ -276,7 +286,6 @@
             </div>
         </div>
 
-        <!-- TYPING INDICATOR -->
         <div class="typing" id="typing">
             <div class="typing-dots">
                 <span></span>
@@ -285,16 +294,70 @@
             </div>
         </div>
 
-        <!-- INPUT -->
         <div class="input-area">
             <input type="text" id="userInput" 
                    placeholder="Ask a business question..." 
                    onkeypress="if(event.key==='Enter') sendMessage()">
             <button class="send-btn" onclick="sendMessage()">Send</button>
         </div>
-    </div>
 
+        <div class="history-panel">
+            <div class="history-head">
+                <h3>Recent Chat History</h3>
+                <div class="history-actions">
+                    <button class="history-btn" onclick="loadHistory()">Refresh</button>
+                    <button class="history-btn" onclick="clearHistory()">Clear</button>
+                </div>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="history-empty">No saved conversations yet.</div>
+            </div>
+        </div>
+{% endblock %}
+
+{% block scripts %}
     <script>
+        function formatDate(value) {
+            const date = new Date(value.replace(' ', 'T'));
+            return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+        }
+
+        function renderHistory(items) {
+            const list = document.getElementById('historyList');
+            if (!items.length) {
+                list.innerHTML = '<div class="history-empty">No saved conversations yet.</div>';
+                return;
+            }
+
+            list.innerHTML = items.map((item) => `
+                <div class="history-item">
+                    <div class="history-meta">${formatDate(item.created_at)}</div>
+                    <div class="history-question">${item.input_text}</div>
+                    <div class="history-answer">${item.output_text}</div>
+                </div>
+            `).join('');
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history/chatbot?limit=6');
+                const data = await response.json();
+                if (data.success) renderHistory(data.items || []);
+            } catch (error) {
+                console.error('Chat history load failed:', error);
+            }
+        }
+
+        async function clearHistory() {
+            try {
+                const response = await fetch('/api/history/chatbot/clear', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) renderHistory([]);
+            } catch (error) {
+                console.error('Chat history clear failed:', error);
+            }
+        }
+
         function askQuick(question) {
             document.getElementById('userInput').value = question;
             sendMessage();
@@ -327,6 +390,7 @@
 
                 if (data.success) {
                     addMessage(data.result, 'bot');
+                    loadHistory();
                 } else {
                     addMessage('Sorry, I encountered an error. Please try again.', 'bot');
                 }
@@ -355,7 +419,7 @@
             const messages = document.getElementById('messages');
             messages.scrollTop = messages.scrollHeight;
         }
-    </script>
 
-</body>
-</html>
+        loadHistory();
+    </script>
+{% endblock %}

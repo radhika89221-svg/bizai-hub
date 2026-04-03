@@ -70,6 +70,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
             padding: 18px 60px;
             position: fixed;
             width: 100%;
@@ -107,8 +109,10 @@
         .nav-links {
             display: flex;
             list-style: none;
-            gap: 32px;
+            gap: 12px;
             align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .nav-links a {
@@ -116,9 +120,22 @@
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
-            transition: color 0.25s;
+            transition: color 0.25s, background-color 0.25s, border-color 0.25s;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid transparent;
         }
-        .nav-links a:hover { color: var(--text); }
+        .nav-links a:hover {
+            color: var(--text);
+            background: rgba(123,94,167,0.08);
+            border-color: rgba(123,94,167,0.18);
+        }
+
+        .nav-links a.active {
+            color: var(--text);
+            background: rgba(123,94,167,0.16);
+            border-color: rgba(123,94,167,0.3);
+        }
 
         .nav-cta {
             padding: 9px 22px;
@@ -700,6 +717,98 @@
             margin-bottom: 20px;
         }
 
+        .history-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 24px;
+        }
+
+        .history-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .history-head h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+        }
+
+        .history-tools {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .history-btn {
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .history-btn:hover {
+            color: var(--text);
+            border-color: rgba(123,94,167,0.35);
+            background: rgba(123,94,167,0.08);
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .history-empty {
+            color: var(--muted);
+            padding: 8px 0;
+        }
+
+        .history-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .history-thumb {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            display: block;
+            background: #0b0b14;
+        }
+
+        .history-body {
+            padding: 14px;
+        }
+
+        .history-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .history-prompt {
+            color: var(--text);
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 60px;
+            overflow: auto;
+        }
+
         .prompt-content {
             background: rgba(255,255,255,0.03);
             border: 1px solid var(--border);
@@ -820,12 +929,20 @@
         /* ── RESPONSIVE ── */
         @media (max-width: 768px) {
             .navbar { padding: 16px 20px; }
-            .nav-links { display: none; }
+            .nav-links {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            .nav-links a {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
             .page-wrap { padding: 90px 16px 60px; }
             .form-card { padding: 24px 20px; }
             .style-grid { grid-template-columns: repeat(2, 1fr); }
             .size-grid { grid-template-columns: repeat(3, 1fr); }
             .action-btns { flex-direction: column; }
+            .history-grid { grid-template-columns: 1fr; }
             footer { flex-direction: column; gap: 12px; text-align: center; padding: 24px 20px; }
         }
     </style>
@@ -844,6 +961,8 @@
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/content-writer">Content Writer</a></li>
+            <li><a href="/image-generator" class="active">Image Generator</a></li>
+            <li><a href="/audio-tools">Audio Tools</a></li>
             <li><a href="/chatbot" class="nav-cta">Try Chatbot</a></li>
         </ul>
     </nav>
@@ -862,7 +981,7 @@
                 Hugging Face Ready | OpenRouter Fallback | Pollinations Backup
             </div>
             <h1>AI Image Generator</h1>
-            <p>Create stunning business images with real AI, completely free.</p>
+            <p>Create polished business visuals with real AI through your configured providers.</p>
         </div>
 
         <!-- TABS -->
@@ -1051,6 +1170,19 @@
             </div>
         </div>
 
+        <div class="history-card">
+            <div class="history-head">
+                <h3>Recent Image History</h3>
+                <div class="history-tools">
+                    <button class="history-btn" onclick="loadImageHistory()">Refresh</button>
+                    <button class="history-btn" onclick="clearImageHistory()">Clear History</button>
+                </div>
+            </div>
+            <div class="history-grid" id="imageHistoryList">
+                <div class="history-empty">No saved images yet.</div>
+            </div>
+        </div>
+
     </div><!-- /page-wrap -->
 
     <!-- ── FOOTER ── -->
@@ -1058,6 +1190,9 @@
         <div class="footer-logo">BizGenius AI</div>
         <div class="footer-links">
             <a href="/">Home</a>
+            <a href="/content-writer">Content Writer</a>
+            <a href="/image-generator">Images</a>
+            <a href="/audio-tools">Audio</a>
             <a href="/chatbot">Chatbot</a>
             <a href="/sentiment">Sentiment</a>
             <a href="/sales-predictor">Sales</a>
@@ -1076,6 +1211,11 @@
         let currentPrompt = '';
         let stepTimer = null;
         let isGeneratingImage = false;
+
+        function formatDate(value) {
+            const date = new Date(value.replace(' ', 'T'));
+            return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+        }
 
         /* ══════════════════════════════
            TAB SWITCHING
@@ -1129,6 +1269,53 @@
             document.getElementById('errorMsg').textContent = ' ' + msg;
         }
 
+        function renderImageHistory(items) {
+            const list = document.getElementById('imageHistoryList');
+            if (!items.length) {
+                list.innerHTML = '<div class="history-empty">No saved images yet.</div>';
+                return;
+            }
+
+            list.innerHTML = items.map((item) => `
+                <div class="history-item">
+                    <img class="history-thumb" src="${item.output_text}" alt="Saved image">
+                    <div class="history-body">
+                        <div class="history-meta">
+                            <span>${item.meta?.provider || 'saved image'}</span>
+                            <span>${formatDate(item.created_at)}</span>
+                        </div>
+                        <div class="history-prompt">${item.input_text}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadImageHistory() {
+            try {
+                const response = await fetch('/api/history/image-generator?limit=6');
+                const data = await response.json();
+                if (data.success) {
+                    renderImageHistory(data.items || []);
+                }
+            } catch (error) {
+                console.error('Image history load failed:', error);
+            }
+        }
+
+        async function clearImageHistory() {
+            try {
+                const response = await fetch('/api/history/image-generator/clear', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    renderImageHistory([]);
+                }
+            } catch (error) {
+                showError('Could not clear image history.');
+            }
+        }
+
         function startLoadingSteps() {
             let step = 1;
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
@@ -1149,8 +1336,7 @@
 
         /* ══════════════════════════════
            IMAGE GENERATION
-           Using Pollinations.AI — free, no API key, works directly!
-           URL: https://image.pollinations.ai/prompt/{encoded_prompt}?w=W&h=H&nologo=true
+           Routed through the Flask backend with provider fallback.
         ══════════════════════════════ */
         async function generateImage() {
             const desc = document.getElementById('imageDesc').value.trim();
@@ -1204,6 +1390,7 @@
                     document.getElementById('loadingSub').textContent = `Generated with ${data.provider}.`;
                 }
                 document.getElementById('genImage').src = data.image_url;
+                loadImageHistory();
             } catch (error) {
                 isGeneratingImage = false;
                 clearTimeout(window._imgTimeout);
@@ -1254,8 +1441,8 @@
 
         /* ══════════════════════════════
            PROMPT GENERATION
-           Calls your Flask backend /api/generate-image-prompt
-           with proper error handling for non-JSON responses
+           Calls the Flask backend /api/generate-image-prompt
+           with safer handling for unexpected responses
         ══════════════════════════════ */
         async function generatePrompt() {
             const imageType = document.getElementById('imageType').value;
@@ -1284,7 +1471,7 @@
                     })
                 });
 
-                // ✅ FIX: Check content-type before .json() to avoid "unexpected token" error
+                // Check content-type before .json() to avoid parsing non-JSON error pages.
                 const contentType = response.headers.get('content-type') || '';
 
                 if (!response.ok) {
@@ -1307,11 +1494,11 @@
                 }
 
             } catch (error) {
-                // ✅ Friendly error messages instead of raw "unexpected token"
+                // Use friendlier messages instead of raw parsing errors.
                 if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
                     showError('Cannot connect to server. Make sure your Flask backend is running!');
                 } else if (error.message.includes('not JSON') || error.message.includes('unexpected')) {
-                    showError('Your Flask backend returned an error page instead of JSON. Check your server logs — the /api/generate-image-prompt route may have a bug.');
+                    showError('Your Flask backend returned an error page instead of JSON. Check your server logs because /api/generate-image-prompt may have a bug.');
                 } else {
                     showError(error.message);
                 }
@@ -1352,6 +1539,8 @@
                 document.body.removeChild(el);
             });
         }
+
+        loadImageHistory();
     </script>
 
 </body>

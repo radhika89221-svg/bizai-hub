@@ -91,6 +91,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
             padding: 20px 64px;
             position: fixed; width: 100%; top: 0;
             z-index: 8000;
@@ -130,7 +132,9 @@
 
         .nav-links {
             display: flex; list-style: none;
-            gap: 36px; align-items: center;
+            gap: 14px; align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .nav-links a {
@@ -140,10 +144,17 @@
             font-size: 12px;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            transition: color 0.3s;
+            transition: color 0.3s, background-color 0.3s, border-color 0.3s;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid transparent;
         }
 
-        .nav-links a:hover { color: var(--royal-bright); }
+        .nav-links a:hover {
+            color: var(--royal-bright);
+            background: rgba(124,58,237,0.08);
+            border-color: rgba(160,130,255,0.18);
+        }
 
         .nav-cta {
             padding: 10px 24px;
@@ -866,7 +877,14 @@
 
         @media (max-width: 768px) {
             .navbar { padding: 16px 24px; }
-            .nav-links { display: none; }
+            .nav-links {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            .nav-links a {
+                font-size: 11px;
+                padding: 8px 12px;
+            }
             .hero { padding: 100px 20px 60px; }
             .hero-stats { gap: 24px; flex-wrap: wrap; justify-content: center; }
             .tools-section, .tech-section, .about-section { padding: 0 24px 70px; }
@@ -915,6 +933,8 @@
             <li><a href="/">Home</a></li>
             <li><a href="#tools">Tools</a></li>
             <li><a href="#about">About</a></li>
+            <li><a href="/image-generator">Images</a></li>
+            <li><a href="/audio-tools">Audio</a></li>
             <li><a href="/chatbot" class="nav-cta">Try Chatbot</a></li>
         </ul>
     </nav>
@@ -930,7 +950,7 @@
 
         <div class="hero-badge">
             <span class="badge-dot"></span>
-            Powered by OpenRouter, NLP, and Computer Vision
+            Powered by Hugging Face, OpenRouter, NLP, and browser AI
         </div>
 
         <h1 class="hero-title">
@@ -1050,10 +1070,10 @@
                 </p>
                 <div class="tech-pills">
                     <span class="tech-pill"><span>AI</span>OpenRouter Models</span>
+                    <span class="tech-pill"><span>IMG</span>Hugging Face Images</span>
                     <span class="tech-pill"><span>PY</span>Python Flask</span>
                     <span class="tech-pill"><span>NLP</span>TextBlob NLP</span>
                     <span class="tech-pill"><span>STT</span>Web Speech API</span>
-                    <span class="tech-pill"><span>IMG</span>Pollinations AI</span>
                     <span class="tech-pill"><span>API</span>OpenRouter API</span>
                     <span class="tech-pill"><span>WEB</span>Browser APIs</span>
                     <span class="tech-pill"><span>REST</span>REST APIs</span>
@@ -1102,11 +1122,14 @@
         <div class="footer-logo">BizGenius AI</div>
         <div class="footer-links">
             <a href="/">Home</a>
+            <a href="/content-writer">Content Writer</a>
+            <a href="/image-generator">Images</a>
+            <a href="/audio-tools">Audio</a>
             <a href="/chatbot">Chatbot</a>
             <a href="/sentiment">Sentiment</a>
             <a href="/sales-predictor">Sales</a>
         </div>
-        <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.06em;">© 2026 BizGenius AI</div>
+        <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.06em;">Copyright 2026 BizGenius AI</div>
     </footer>
 
     <script>

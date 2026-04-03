@@ -1,3 +1,8 @@
 .env
 __pycache__/
 static/generated/
+bizgenius_history.json
+bizgenius_history.db
+bizgenius_history.db-journal
+instance/
+app_original.py
