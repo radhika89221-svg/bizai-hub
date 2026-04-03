@@ -163,12 +163,24 @@ def ask_ai(prompt, models=None, fallback_text=None):
             return result['choices'][0]['message']['content']
 
         if 'error' in result:
+            error_text = result['error'].get('message', str(result['error']))
             log_event(
                 'ai_request_failed',
                 model=model,
                 status_code=response.status_code,
-                error=result['error'].get('message', '')
+                error=error_text
             )
+            return f"OpenRouter error: {error_text}"
+
+        if response.status_code != 200:
+            log_event(
+                'ai_request_failed',
+                model=model,
+                status_code=response.status_code,
+                error='Unexpected status code from OpenRouter'
+            )
+            api_error = result.get('message') or result.get('detail') or 'Unknown OpenRouter API error.'
+            return f"OpenRouter status {response.status_code}: {api_error}"
 
         return fallback_text or "AI is temporarily busy. Please try again in a minute."
     except requests.exceptions.Timeout:
