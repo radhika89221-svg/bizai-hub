@@ -41,6 +41,18 @@ from response_utils import json_error, json_success, parse_json_request
 api_bp = Blueprint('api', __name__)
 
 
+@api_bp.route('/api/health', methods=['GET'])
+def health_check():
+    try:
+        # this executes a small AI path call through OpenRouter and returns status
+        result = ask_ai('Health check.', fallback_text=None)
+        if not result:
+            return json_error('Health check failed: OpenRouter returned no response.', 503)
+        return json_success(status='healthy', openrouter='reachable', sample=result)
+    except Exception as exc:
+        return json_error('Health check failed: ' + str(exc), 500)
+
+
 def update_image_job(job_id, **fields):
     """Persist job progress updates from the background worker."""
     job = ImageJob.query.get(job_id)
