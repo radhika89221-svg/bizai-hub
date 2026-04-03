@@ -77,6 +77,7 @@ DATABASE_URL=optional_database_url
 RATELIMIT_STORAGE_URI=optional_rate_limit_storage
 OPENROUTER_TEXT_MODEL=optional_openrouter_text_model
 OPENROUTER_TEXT_MODELS=optional_comma_separated_model_fallbacks
+OPENROUTER_TIMEOUT_SECONDS=optional_openrouter_request_timeout
 ```
 
 Notes:
@@ -90,6 +91,7 @@ Notes:
 - `OPENROUTER_TEXT_MODELS` is optional. It lets you define a comma-separated fallback list, for example `stepfun/step-3.5-flash:free,qwen/qwen3.6-plus:free`.
 - `OPENROUTER_CHAT_MODELS` is optional. It overrides the preferred model order for the business advisor chat tool.
 - `OPENROUTER_CONTENT_MODELS` is optional. It overrides the preferred model order for the content writer tool.
+- `OPENROUTER_TIMEOUT_SECONDS` is optional. Default is `20` so the app can fall back gracefully before the hosting platform times out.
 - Do not commit `.env`.
 
 ## Install Locally

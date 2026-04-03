@@ -17,7 +17,7 @@ import requests
 from logging_utils import log_event
 
 
-DEFAULT_REQUEST_TIMEOUT = 60
+DEFAULT_REQUEST_TIMEOUT = int(os.environ.get("OPENROUTER_TIMEOUT_SECONDS", "20"))
 IMAGE_REQUEST_TIMEOUT = 120
 DEFAULT_TEXT_MODELS = [
     model.strip()
