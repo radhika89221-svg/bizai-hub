@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Voice Web Navigator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Voice Navigator</h2>
+
+    <label>Paste Website URL</label>
+    <input type="text" id="urlInput" placeholder="https://youtube.com" />
+
+    <label>Output Mode</label>
+    <select id="mode">
+      <option value="text">Text</option>
+      <option value="voice">Voice</option>
+    </select>
+
+    <label>Language</label>
+    <select id="language">
+      <option value="en-US">English</option>
+      <option value="hi-IN">Hindi</option>
+      <option value="te-IN">Telugu</option>
+      <option value="ta-IN">Tamil</option>
+    </select>
+
+    <button id="startBtn">▶ Start</button>
+    <button id="micBtn">🎤 Speak Command</button>
+
+    <!-- Status message -->
+    <p id="status" style="color: #aaa; font-size: 13px; margin-top: 10px;"></p>
+  </div>
+
+  <!-- Main Area -->
+  <div class="main">
+
+    <!-- Chat messages -->
+    <div class="chat-box" id="chatBox"></div>
+
+    <!-- The website loads here inside your app -->
+    <iframe id="siteFrame" src="" style="width:100%; height:50vh; border:none; border-top: 1px solid #555;"></iframe>
+
+    <!-- Text input area -->
+    <div class="input-area">
+      <input type="text" id="textInput" placeholder="Or type a command here..." />
+      <button id="sendBtn">Send</button>
+    </div>
+
+  </div>
+</div>
+
+<script type="module" src="App.js"></script>
+</body>
+</html>
