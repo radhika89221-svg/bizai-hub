@@ -416,10 +416,10 @@
                     body: JSON.stringify(payload)
                 });
                 const rawText = await response.text();
-                const contentType = response.headers.get('content-type') || '';
+                const responseContentType = response.headers.get('content-type') || '';
                 let data = null;
 
-                if (contentType.includes('application/json')) {
+                if (responseContentType.includes('application/json')) {
                     data = JSON.parse(rawText);
                 } else {
                     throw new Error(`Server returned unexpected response (not JSON). Raw: ${rawText.substring(0, 160)}`);
