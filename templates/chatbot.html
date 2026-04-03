@@ -241,7 +241,7 @@
 
     <!-- NAVBAR -->
     <nav class="navbar">
-        <a href="/" class="logo">🚀 BizGenius AI</a>
+        <a href="/" class="logo">BizGenius AI</a>
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/content-writer">Content Writer</a></li>
@@ -251,10 +251,10 @@
     </nav>
 
     <div class="chat-container">
-        <a href="/" class="back-btn">← Back to Home</a>
+        <a href="/" class="back-btn">&larr; Back to Home</a>
         
         <div class="chat-header">
-            <h1>💬 AI Business Advisor</h1>
+            <h1>AI Business Advisor</h1>
             <p>Ask me anything about business, marketing, strategy & growth</p>
         </div>
 
@@ -269,7 +269,7 @@
         <!-- MESSAGES -->
         <div class="messages" id="messages">
             <div class="message bot-msg">
-                <div class="bot-label">🤖 BizGenius AI</div>
+                <div class="bot-label">BizGenius AI</div>
                 Hello! I'm your AI Business Advisor. Ask me anything about 
                 business strategy, marketing, sales, branding, or growth. 
                 How can I help you today?
@@ -290,7 +290,7 @@
             <input type="text" id="userInput" 
                    placeholder="Ask a business question..." 
                    onkeypress="if(event.key==='Enter') sendMessage()">
-            <button class="send-btn" onclick="sendMessage()">Send 🚀</button>
+            <button class="send-btn" onclick="sendMessage()">Send</button>
         </div>
     </div>
 
@@ -342,7 +342,7 @@
             msgDiv.className = `message ${type === 'user' ? 'user-msg' : 'bot-msg'}`;
 
             if (type === 'bot') {
-                msgDiv.innerHTML = `<div class="bot-label">🤖 BizGenius AI</div>${text}`;
+                msgDiv.innerHTML = `<div class="bot-label">BizGenius AI</div>${text}`;
             } else {
                 msgDiv.textContent = text;
             }

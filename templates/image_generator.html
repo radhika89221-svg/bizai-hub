@@ -838,13 +838,13 @@
     <!-- ── NAVBAR ── -->
     <nav class="navbar">
         <a href="/" class="logo">
-            <div class="logo-icon">🚀</div>
+            <div class="logo-icon">AI</div>
             Biz<span>Genius</span> AI
         </a>
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/content-writer">Content Writer</a></li>
-            <li><a href="/chatbot" class="nav-cta">Try Chatbot →</a></li>
+            <li><a href="/chatbot" class="nav-cta">Try Chatbot</a></li>
         </ul>
     </nav>
 
@@ -852,106 +852,106 @@
     <div class="page-wrap">
 
         <a href="/" class="back-btn">
-            ← Back to Home
+            &larr; Back to Home
         </a>
 
         <!-- TITLE -->
         <div class="page-title">
             <div class="page-badge">
                 <span class="badge-dot"></span>
-                Pollinations AI · Free · No API Key
+                Hugging Face Ready | OpenRouter Fallback | Pollinations Backup
             </div>
-            <h1>🖼️ AI Image Generator</h1>
-            <p>Create stunning business images with real AI — completely free</p>
+            <h1>AI Image Generator</h1>
+            <p>Create stunning business images with real AI, completely free.</p>
         </div>
 
         <!-- TABS -->
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('image')">🎨 Generate Image</div>
-            <div class="tab" onclick="switchTab('prompt')">📝 Generate Prompt</div>
+            <div class="tab active" onclick="switchTab('image')">Generate Image</div>
+            <div class="tab" onclick="switchTab('prompt')">Generate Prompt</div>
         </div>
 
         <!-- ════ TAB 1: IMAGE ════ -->
         <div class="tab-content active" id="tab-image">
 
             <div class="info-box">
-                <span class="info-icon">⚡</span>
+                <span class="info-icon">AI</span>
                 <div>
-                    Images are generated using <strong>Pollinations.AI</strong> — a free, open-source AI image generation service. No API key needed, works directly in your browser. Images generate in ~10–20 seconds.
+                    Images are generated through your Flask backend. If <strong>HF_TOKEN</strong> is configured, the app uses Hugging Face first, then OpenRouter, and finally Pollinations as a backup.
                 </div>
             </div>
 
             <div class="form-card">
                 <div class="samples-label">Quick Examples</div>
                 <div class="samples">
-                    <button class="sample-btn" onclick="useSample('A modern minimalist logo for a coffee shop, flat design, white background, warm brown tones')">☕ Coffee Logo</button>
-                    <button class="sample-btn" onclick="useSample('Professional social media banner for a tech startup, dark theme, purple and blue gradient, futuristic')">🖥️ Tech Banner</button>
-                    <button class="sample-btn" onclick="useSample('Product photo of premium wireless headphones on dark background, dramatic studio lighting, 8k quality')">🎧 Product Photo</button>
-                    <button class="sample-btn" onclick="useSample('Business team in modern office having a meeting, professional, natural lighting, photorealistic')">👥 Team Photo</button>
-                    <button class="sample-btn" onclick="useSample('Abstract background for a website hero section, purple and indigo gradient, geometric shapes, dark theme')">🌌 Hero BG</button>
-                    <button class="sample-btn" onclick="useSample('Elegant restaurant menu cover design, gold and black, luxury aesthetic, ornate decorative border')">🍽️ Menu Cover</button>
+                    <button class="sample-btn" onclick="useSample('A modern minimalist logo for a coffee shop, flat design, white background, warm brown tones')">Coffee Logo</button>
+                    <button class="sample-btn" onclick="useSample('Professional social media banner for a tech startup, dark theme, purple and blue gradient, futuristic')">Tech Banner</button>
+                    <button class="sample-btn" onclick="useSample('Product photo of premium wireless headphones on dark background, dramatic studio lighting, 8k quality')">Product Photo</button>
+                    <button class="sample-btn" onclick="useSample('Business team in modern office having a meeting, professional, natural lighting, photorealistic')">Team Photo</button>
+                    <button class="sample-btn" onclick="useSample('Abstract background for a website hero section, purple and indigo gradient, geometric shapes, dark theme')">Hero Background</button>
+                    <button class="sample-btn" onclick="useSample('Elegant restaurant menu cover design, gold and black, luxury aesthetic, ornate decorative border')">Menu Cover</button>
                 </div>
 
                 <div class="form-group">
-                    <label>🎨 Describe your image <span style="color:var(--muted); font-weight:300">(be specific for best results)</span></label>
+                    <label>Describe your image <span style="color:var(--muted); font-weight:300">(be specific for best results)</span></label>
                     <textarea id="imageDesc" placeholder="Example: A modern minimalist coffee shop logo with a steaming cup icon, warm browns and cream colors, clean flat design, white background, professional quality..."></textarea>
                 </div>
 
                 <!-- Style Selector -->
                 <div class="form-group">
-                    <label>🎭 Art Style</label>
+                    <label>Art Style</label>
                     <div class="style-grid" id="styleGrid">
                         <div class="style-opt selected" onclick="selectStyle(this, 'photorealistic')">
-                            <span class="style-emoji">📷</span>Photorealistic
+                            <span class="style-emoji">PH</span>Photorealistic
                         </div>
                         <div class="style-opt" onclick="selectStyle(this, 'digital art')">
-                            <span class="style-emoji">🎨</span>Digital Art
+                            <span class="style-emoji">DA</span>Digital Art
                         </div>
                         <div class="style-opt" onclick="selectStyle(this, 'minimalist flat design')">
-                            <span class="style-emoji">⬜</span>Minimalist
+                            <span class="style-emoji">MI</span>Minimalist
                         </div>
                         <div class="style-opt" onclick="selectStyle(this, 'cinematic 4k')">
-                            <span class="style-emoji">🎬</span>Cinematic
+                            <span class="style-emoji">CI</span>Cinematic
                         </div>
                         <div class="style-opt" onclick="selectStyle(this, 'watercolor illustration')">
-                            <span class="style-emoji">🖌️</span>Watercolor
+                            <span class="style-emoji">WC</span>Watercolor
                         </div>
                         <div class="style-opt" onclick="selectStyle(this, '3d render octane')">
-                            <span class="style-emoji">🔮</span>3D Render
+                            <span class="style-emoji">3D</span>3D Render
                         </div>
                     </div>
                 </div>
 
                 <!-- Size Selector -->
                 <div class="form-group">
-                    <label>📐 Image Size</label>
+                    <label>Image Size</label>
                     <div class="size-grid">
                         <div class="size-opt selected" onclick="selectSize(this, 512, 512)">
                             <div class="size-preview" style="height:36px;">
                                 <div class="size-rect" style="width:28px;height:28px;"></div>
                             </div>
                             <div class="size-label">Square</div>
-                            <div class="size-dim">512 × 512</div>
+                            <div class="size-dim">512 x 512</div>
                         </div>
                         <div class="size-opt" onclick="selectSize(this, 768, 512)">
                             <div class="size-preview" style="height:36px;">
                                 <div class="size-rect" style="width:36px;height:24px;"></div>
                             </div>
                             <div class="size-label">Landscape</div>
-                            <div class="size-dim">768 × 512</div>
+                            <div class="size-dim">768 x 512</div>
                         </div>
                         <div class="size-opt" onclick="selectSize(this, 512, 768)">
                             <div class="size-preview" style="height:36px;">
                                 <div class="size-rect" style="width:20px;height:32px;"></div>
                             </div>
                             <div class="size-label">Portrait</div>
-                            <div class="size-dim">512 × 768</div>
+                            <div class="size-dim">512 x 768</div>
                         </div>
                     </div>
                 </div>
 
                 <button class="generate-btn" id="imgBtn" onclick="generateImage()">
-                    ✨ Generate Image
+                    Generate Image
                 </button>
             </div>
         </div>
@@ -960,7 +960,7 @@
         <div class="tab-content" id="tab-prompt">
             <div class="form-card">
                 <div class="form-group">
-                    <label>🖼️ Image Type</label>
+                    <label>Image Type</label>
                     <select id="imageType">
                         <option value="Business Logo">Business Logo</option>
                         <option value="Social Media Banner">Social Media Banner</option>
@@ -971,11 +971,11 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>📝 Describe What You Need</label>
+                    <label>Describe What You Need</label>
                     <textarea id="promptDesc" placeholder="e.g., A modern logo for a coffee shop called Bean Brew, targeting young professionals..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label>🎭 Style Preference</label>
+                    <label>Style Preference</label>
                     <select id="styleType">
                         <option value="Modern Minimalist">Modern Minimalist</option>
                         <option value="Professional Corporate">Professional Corporate</option>
@@ -986,7 +986,7 @@
                     </select>
                 </div>
                 <button class="generate-btn" id="promptBtn" onclick="generatePrompt()">
-                    📝 Generate AI Prompt
+                    Generate AI Prompt
                 </button>
             </div>
         </div>
@@ -998,7 +998,7 @@
                 <div class="spinner-inner"></div>
             </div>
             <h4 id="loadingText">Generating your image...</h4>
-            <p id="loadingSub">Connecting to AI — this takes about 15–20 seconds</p>
+            <p id="loadingSub">Connecting to AI. This takes about 15 to 20 seconds.</p>
             <div class="loading-steps">
                 <div class="step active" id="step1">
                     <div class="step-dot"></div>
@@ -1017,15 +1017,15 @@
 
         <!-- ── ERROR BOX ── -->
         <div class="error-box" id="errorBox">
-            <strong>⚠️ Something went wrong</strong>
+            <strong>Something went wrong</strong>
             <span id="errorMsg"></span>
         </div>
 
         <!-- ── IMAGE RESULT ── -->
         <div class="result-card" id="imageResult">
             <div class="result-header">
-                <h3>🎨 Your Generated Image</h3>
-                <span class="result-badge">✓ Generated</span>
+                <h3>Your Generated Image</h3>
+                <span class="result-badge">Generated</span>
             </div>
             <div class="image-frame">
                 <img id="genImage" src="" alt="Generated Image" onload="onImageLoad()" onerror="onImageError()">
@@ -1035,19 +1035,19 @@
                 <strong>Prompt used:</strong> <span id="usedPrompt"></span>
             </div>
             <div class="action-btns">
-                <button class="action-btn btn-download" onclick="downloadImg()">💾 Download</button>
-                <button class="action-btn btn-regen" onclick="generateImage()">🔄 Generate Again</button>
-                <button class="action-btn btn-open" onclick="openInNewTab()">🔗 Open Full Size</button>
+                <button class="action-btn btn-download" onclick="downloadImg()">Download</button>
+                <button class="action-btn btn-regen" onclick="generateImage()">Generate Again</button>
+                <button class="action-btn btn-open" onclick="openInNewTab()">Open Full Size</button>
             </div>
         </div>
 
         <!-- ── PROMPT RESULT ── -->
         <div class="prompt-result-card" id="promptResult">
-            <h3>📝 Your AI-Generated Prompt</h3>
+            <h3>Your AI-Generated Prompt</h3>
             <div class="prompt-content" id="promptText"></div>
             <div class="prompt-actions">
-                <button class="copy-btn" onclick="copyPrompt()">📋 Copy Prompt</button>
-                <button class="use-prompt-btn" onclick="usePromptToGenerate()">🎨 Generate Image with This →</button>
+                <button class="copy-btn" onclick="copyPrompt()">Copy Prompt</button>
+                <button class="use-prompt-btn" onclick="usePromptToGenerate()">Generate Image with This</button>
             </div>
         </div>
 
@@ -1062,7 +1062,7 @@
             <a href="/sentiment">Sentiment</a>
             <a href="/sales-predictor">Sales</a>
         </div>
-        <div>© 2026 BizGenius AI · Ayushi Singh</div>
+        <div>Copyright 2026 BizGenius AI | Ayushi Singh</div>
     </footer>
 
     <script>
@@ -1075,6 +1075,7 @@
         let currentImageUrl = '';
         let currentPrompt = '';
         let stepTimer = null;
+        let isGeneratingImage = false;
 
         /* ══════════════════════════════
            TAB SWITCHING
@@ -1160,69 +1161,88 @@
 
             hideResults();
 
-            // Build a rich prompt combining user description + style
             const enrichedPrompt = `${desc}, ${selectedStyle}, high quality, professional, detailed`;
             currentPrompt = enrichedPrompt;
 
-            // Build Pollinations.AI URL — this directly returns an image, no JSON!
-            const seed = Math.floor(Math.random() * 999999);
-            const encodedPrompt = encodeURIComponent(enrichedPrompt);
-            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${selectedWidth}&height=${selectedHeight}&seed=${seed}&nologo=true&enhance=true`;
-            currentImageUrl = imageUrl;
-
-            // Show loading
             document.getElementById('loading').style.display = 'block';
             document.getElementById('loadingText').textContent = 'AI is creating your image...';
-            document.getElementById('loadingSub').textContent = 'Generating with Pollinations AI — ~15 seconds';
+            document.getElementById('loadingSub').textContent = 'Generating through the Flask backend with Hugging Face, OpenRouter, and Pollinations fallback.';
             document.getElementById('imgBtn').disabled = true;
-            document.getElementById('imgBtn').textContent = '⏳ Generating...';
+            document.getElementById('imgBtn').textContent = 'Generating...';
             startLoadingSteps();
+            isGeneratingImage = true;
 
-            // Set the image src — it will load when Pollinations responds
             document.getElementById('genImage').src = '';
             document.getElementById('usedPrompt').textContent = desc + ' | Style: ' + selectedStyle;
 
-            // Start loading the image
-            document.getElementById('genImage').src = imageUrl;
-
-            // Timeout fallback (45 seconds)
             window._imgTimeout = setTimeout(() => {
                 if (document.getElementById('loading').style.display !== 'none') {
                     finishLoading();
                     showError('Image took too long to generate. Try a simpler description or click Generate Again.');
                 }
-            }, 45000);
+            }, 90000);
+
+            try {
+                const response = await fetch('/api/generate-real-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: enrichedPrompt,
+                        width: selectedWidth,
+                        height: selectedHeight
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success || !data.image_url) {
+                    throw new Error(data.error || 'Image generation failed.');
+                }
+
+                currentImageUrl = data.image_url;
+                if (data.provider) {
+                    document.getElementById('loadingSub').textContent = `Generated with ${data.provider}.`;
+                }
+                document.getElementById('genImage').src = data.image_url;
+            } catch (error) {
+                isGeneratingImage = false;
+                clearTimeout(window._imgTimeout);
+                stopLoadingSteps();
+                finishLoading();
+                showError(error.message || 'Could not generate image.');
+            }
         }
 
         function onImageLoad() {
+            isGeneratingImage = false;
             clearTimeout(window._imgTimeout);
             stopLoadingSteps();
             finishLoading();
+            document.getElementById('errorBox').style.display = 'none';
+            document.getElementById('errorMsg').textContent = '';
             document.getElementById('imageResult').style.display = 'block';
         }
 
         function onImageError() {
+            if (!isGeneratingImage) return;
+            isGeneratingImage = false;
             clearTimeout(window._imgTimeout);
             stopLoadingSteps();
             finishLoading();
-            showError('Could not generate image. This can happen if the AI service is busy. Please try again in a few seconds!');
+            showError('Could not load the generated image. Please try again.');
         }
 
         function finishLoading() {
             document.getElementById('loading').style.display = 'none';
             document.getElementById('imgBtn').disabled = false;
-            document.getElementById('imgBtn').textContent = '✨ Generate Image';
+            document.getElementById('imgBtn').textContent = 'Generate Image';
         }
 
         function downloadImg() {
             if (!currentImageUrl) return;
-            // Open in new tab — user can right-click save
-            // (direct download of cross-origin images requires a backend proxy)
             const a = document.createElement('a');
             a.href = currentImageUrl;
             a.download = 'bizgenius-ai-image.png';
-            a.target = '_blank';
-            a.rel = 'noopener';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1250,10 +1270,10 @@
             hideResults();
 
             document.getElementById('promptBtn').disabled = true;
-            document.getElementById('promptBtn').textContent = '⏳ Generating...';
+            document.getElementById('promptBtn').textContent = 'Generating...';
             document.getElementById('loading').style.display = 'block';
             document.getElementById('loadingText').textContent = 'AI is crafting your prompt...';
-            document.getElementById('loadingSub').textContent = 'Powered by Gemini AI';
+            document.getElementById('loadingSub').textContent = 'Powered by OpenRouter AI';
 
             try {
                 const response = await fetch('/api/generate-image-prompt', {
@@ -1299,7 +1319,7 @@
 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('promptBtn').disabled = false;
-            document.getElementById('promptBtn').textContent = '📝 Generate AI Prompt';
+            document.getElementById('promptBtn').textContent = 'Generate AI Prompt';
         }
 
         /* ══════════════════════════════
@@ -1320,7 +1340,7 @@
             navigator.clipboard.writeText(text).then(() => {
                 const btn = document.querySelector('.copy-btn');
                 const orig = btn.textContent;
-                btn.textContent = '✅ Copied!';
+                btn.textContent = 'Copied!';
                 setTimeout(() => btn.textContent = orig, 2000);
             }).catch(() => {
                 // Fallback for older browsers

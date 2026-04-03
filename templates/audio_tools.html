@@ -113,7 +113,7 @@
 <body>
 
     <nav class="navbar">
-        <a href="/" class="logo">🚀 BizGenius AI</a>
+        <a href="/" class="logo">BizGenius AI</a>
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/content-writer">Content Writer</a></li>
@@ -123,17 +123,17 @@
     </nav>
 
     <div class="container">
-        <a href="/" class="back-btn">← Back to Home</a>
+        <a href="/" class="back-btn">&larr; Back to Home</a>
 
         <div class="page-title">
-            <h1>🎙️ AI Audio Tools</h1>
+            <h1>AI Audio Tools</h1>
             <p>Text-to-Speech, Speech-to-Text, and AI content generation tools</p>
         </div>
 
         <div class="tools-grid">
             <!-- TEXT TO SPEECH -->
             <div class="tool-card">
-                <div class="icon">🔊</div>
+                <div class="icon">TTS</div>
                 <h3>Text to Speech</h3>
                 <p>Convert any text into natural speech using your browser's TTS engine.</p>
                 <textarea class="tool-input" id="ttsText" rows="4"
@@ -145,52 +145,52 @@
                         style="flex:1;">
                     <span id="speedValue" style="color:#667eea; font-size:13px;">1.0x</span>
                 </div>
-                <button class="tool-btn" onclick="speakText()">🔊 Speak</button>
-                <button class="tool-btn-stop" onclick="stopSpeech()">⏹️ Stop</button>
+                <button class="tool-btn" onclick="speakText()">Speak</button>
+                <button class="tool-btn-stop" onclick="stopSpeech()">Stop</button>
             </div>
 
             <!-- SPEECH TO TEXT -->
             <div class="tool-card">
-                <div class="icon">🎤</div>
+                <div class="icon">STT</div>
                 <h3>Speech to Text</h3>
                 <p>Speak into your microphone and convert voice to text instantly.</p>
                 <div class="tool-result" id="sttResult" style="display:block; min-height:120px;">
-                    🎤 Click the button below and start speaking...
+                    Click the button below and start speaking...
                 </div>
                 <button class="tool-btn" id="sttBtn" onclick="toggleListening()">
-                    🎤 Start Listening
+                    Start Listening
                 </button>
-                <button class="copy-small" onclick="copyText('sttResult')">📋 Copy Text</button>
+                <button class="copy-small" onclick="copyText('sttResult')">Copy Text</button>
             </div>
 
             <!-- PODCAST SCRIPT -->
             <div class="tool-card">
-                <div class="icon">🎧</div>
+                <div class="icon">POD</div>
                 <h3>Podcast Script Generator</h3>
                 <p>Generate a professional podcast script on any business topic.</p>
                 <input class="tool-input" id="podcastTopic" type="text"
                     placeholder="e.g., Digital Marketing Trends 2025">
-                <button class="tool-btn" id="podcastBtn" onclick="generatePodcast()">🎧 Generate Script</button>
+                <button class="tool-btn" id="podcastBtn" onclick="generatePodcast()">Generate Script</button>
                 <div class="loading-small" id="podcastLoading">
                     <span class="mini-spinner"></span> AI is writing your script...
                 </div>
                 <div class="tool-result" id="podcastResult"></div>
-                <button class="copy-small" id="podcastCopy" style="display:none;" onclick="copyText('podcastResult')">📋 Copy Script</button>
+                <button class="copy-small" id="podcastCopy" style="display:none;" onclick="copyText('podcastResult')">Copy Script</button>
             </div>
 
             <!-- PRESENTATION NOTES -->
             <div class="tool-card">
-                <div class="icon">📢</div>
+                <div class="icon">NOTES</div>
                 <h3>Presentation Speaker Notes</h3>
                 <p>Generate speaker notes for your business presentation.</p>
                 <input class="tool-input" id="presentationTopic" type="text"
                     placeholder="e.g., Q4 Sales Report Presentation">
-                <button class="tool-btn" id="notesBtn" onclick="generateNotes()">📢 Generate Notes</button>
+                <button class="tool-btn" id="notesBtn" onclick="generateNotes()">Generate Notes</button>
                 <div class="loading-small" id="notesLoading">
                     <span class="mini-spinner"></span> AI is writing your notes...
                 </div>
                 <div class="tool-result" id="notesResult"></div>
-                <button class="copy-small" id="notesCopy" style="display:none;" onclick="copyText('notesResult')">📋 Copy Notes</button>
+                <button class="copy-small" id="notesCopy" style="display:none;" onclick="copyText('notesResult')">Copy Notes</button>
             </div>
         </div>
     </div>
@@ -253,7 +253,7 @@
             recognition.lang = 'en-US';
 
             const btn = document.getElementById('sttBtn');
-            btn.textContent = '🔴 Stop Listening';
+            btn.textContent = 'Stop Listening';
             btn.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
             isListening = true;
 
@@ -273,14 +273,14 @@
             };
 
             recognition.onend = () => {
-                btn.textContent = '🎤 Start Listening';
+                btn.textContent = 'Start Listening';
                 btn.style.background = '';
                 isListening = false;
             };
 
             recognition.onerror = (event) => {
                 console.log('Speech error:', event.error);
-                btn.textContent = '🎤 Start Listening';
+                btn.textContent = 'Start Listening';
                 btn.style.background = '';
                 isListening = false;
             };

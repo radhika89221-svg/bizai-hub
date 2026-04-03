@@ -245,7 +245,7 @@
 
     <!-- NAVBAR -->
     <nav class="navbar">
-        <a href="/" class="logo">🚀 BizGenius AI</a>
+        <a href="/" class="logo">BizGenius AI</a>
         <ul class="nav-links">
             <li><a href="/">Home</a></li>
             <li><a href="/content-writer">Content Writer</a></li>
@@ -255,17 +255,17 @@
     </nav>
 
     <div class="container">
-        <a href="/" class="back-btn">← Back to Home</a>
+        <a href="/" class="back-btn">&larr; Back to Home</a>
 
         <div class="page-title">
-            <h1>📝 AI Content Writer</h1>
+            <h1>AI Content Writer</h1>
             <p>Generate professional business content instantly with AI</p>
         </div>
 
         <!-- FORM -->
         <div class="form-section">
             <div class="form-group">
-                <label>📌 Content Type</label>
+                <label>Content Type</label>
                 <select id="contentType">
                     <option value="Marketing Email">Marketing Email</option>
                     <option value="Product Description">Product Description</option>
@@ -279,19 +279,19 @@
             </div>
 
             <div class="form-group">
-                <label>🎯 Topic / Product / Business Name</label>
+                <label>Topic / Product / Business Name</label>
                 <input type="text" id="topic" 
                        placeholder="e.g., Launch of our new fitness app 'FitLife Pro'">
             </div>
 
             <div class="form-group">
-                <label>📝 Additional Details (Optional)</label>
+                <label>Additional Details (Optional)</label>
                 <textarea id="details" 
                           placeholder="e.g., Target audience is young professionals, tone should be friendly and energetic"></textarea>
             </div>
 
             <button class="generate-btn" id="generateBtn" onclick="generateContent()">
-                ✨ Generate Content
+                Generate Content
             </button>
         </div>
 
@@ -303,9 +303,9 @@
 
         <!-- RESULT -->
         <div class="result-section" id="resultSection">
-            <h3>✅ Generated Content</h3>
+            <h3>Generated Content</h3>
             <div class="result-content" id="resultContent"></div>
-            <button class="copy-btn" onclick="copyContent()">📋 Copy to Clipboard</button>
+            <button class="copy-btn" onclick="copyContent()">Copy to Clipboard</button>
         </div>
     </div>
 
@@ -355,8 +355,8 @@
             const content = document.getElementById('resultContent').textContent;
             navigator.clipboard.writeText(content).then(() => {
                 const btn = document.querySelector('.copy-btn');
-                btn.textContent = '✅ Copied!';
-                setTimeout(() => btn.textContent = '📋 Copy to Clipboard', 2000);
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy to Clipboard', 2000);
             });
         }
     </script>

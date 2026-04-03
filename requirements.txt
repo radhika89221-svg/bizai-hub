@@ -3,3 +3,5 @@ textblob
 requests
 gunicorn
 python-dotenv
+huggingface_hub
+Pillow
