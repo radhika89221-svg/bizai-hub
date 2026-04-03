@@ -1274,6 +1274,8 @@
         let currentPrompt = '';
         let stepTimer = null;
         let isGeneratingImage = false;
+        let currentJobId = null;
+        let jobPollTimer = null;
 
         function formatDate(value) {
             const date = new Date(value.replace(' ', 'T'));
@@ -1397,6 +1399,68 @@
             if (stepTimer) clearInterval(stepTimer);
         }
 
+        function clearJobPolling() {
+            if (jobPollTimer) {
+                clearTimeout(jobPollTimer);
+                jobPollTimer = null;
+            }
+            currentJobId = null;
+        }
+
+        function updateLoadingFromJob(data) {
+            const progress = Number(data.progress_pct || 0);
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+            const step3 = document.getElementById('step3');
+
+            [step1, step2, step3].forEach((step) => step.classList.remove('active'));
+            if (progress >= 0) step1.classList.add('active');
+            if (progress >= 40) step2.classList.add('active');
+            if (progress >= 80) step3.classList.add('active');
+
+            document.getElementById('loadingSub').textContent =
+                data.status_message || 'Your image job is running...';
+        }
+
+        async function pollImageJob(jobId) {
+            try {
+                const response = await fetch(`/api/image-jobs/${jobId}`);
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Could not read image job status.');
+                }
+
+                updateLoadingFromJob(data);
+
+                if (data.status === 'completed' && data.image_url) {
+                    clearTimeout(window._imgTimeout);
+                    clearJobPolling();
+                    stopLoadingSteps();
+                    currentImageUrl = data.image_url;
+                    document.getElementById('genImage').src = data.image_url;
+                    if (data.provider) {
+                        document.getElementById('loadingSub').textContent = `Generated with ${data.provider}.`;
+                    }
+                    loadImageHistory();
+                    return;
+                }
+
+                if (data.status === 'failed') {
+                    throw new Error(data.error || 'Image generation failed.');
+                }
+
+                jobPollTimer = setTimeout(() => pollImageJob(jobId), 1800);
+            } catch (error) {
+                isGeneratingImage = false;
+                clearTimeout(window._imgTimeout);
+                clearJobPolling();
+                stopLoadingSteps();
+                finishLoading();
+                showError(error.message || 'Could not generate image.');
+            }
+        }
+
         /* ══════════════════════════════
            IMAGE GENERATION
            Routed through the Flask backend with provider fallback.
@@ -1415,24 +1479,26 @@
 
             document.getElementById('loading').style.display = 'block';
             document.getElementById('loadingText').textContent = 'AI is creating your image...';
-            document.getElementById('loadingSub').textContent = 'Generating through the Flask backend with Hugging Face, OpenRouter, and Pollinations fallback.';
+            document.getElementById('loadingSub').textContent = 'Submitting your image job to the backend queue.';
             document.getElementById('imgBtn').disabled = true;
             document.getElementById('imgBtn').textContent = 'Generating...';
             startLoadingSteps();
             isGeneratingImage = true;
+            clearJobPolling();
 
             document.getElementById('genImage').src = '';
             document.getElementById('usedPrompt').textContent = desc + ' | Style: ' + selectedStyle;
 
             window._imgTimeout = setTimeout(() => {
                 if (document.getElementById('loading').style.display !== 'none') {
+                    clearJobPolling();
                     finishLoading();
                     showError('Image took too long to generate. Try a simpler description or click Generate Again.');
                 }
-            }, 90000);
+            }, 120000);
 
             try {
-                const response = await fetch('/api/generate-real-image', {
+                const response = await fetch('/api/image-jobs', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1445,18 +1511,28 @@
                 const data = await response.json();
 
                 if (!response.ok || !data.success || !data.image_url) {
-                    throw new Error(data.error || 'Image generation failed.');
+                    if (!response.ok || !data.success) {
+                        throw new Error(data.error || 'Image generation failed.');
+                    }
                 }
 
-                currentImageUrl = data.image_url;
-                if (data.provider) {
-                    document.getElementById('loadingSub').textContent = `Generated with ${data.provider}.`;
+                if (data.status === 'completed' && data.image_url) {
+                    currentImageUrl = data.image_url;
+                    if (data.provider) {
+                        document.getElementById('loadingSub').textContent = `Generated with ${data.provider}.`;
+                    }
+                    document.getElementById('genImage').src = data.image_url;
+                    loadImageHistory();
+                    return;
                 }
-                document.getElementById('genImage').src = data.image_url;
-                loadImageHistory();
+
+                currentJobId = data.job_id;
+                updateLoadingFromJob(data);
+                jobPollTimer = setTimeout(() => pollImageJob(data.job_id), 1200);
             } catch (error) {
                 isGeneratingImage = false;
                 clearTimeout(window._imgTimeout);
+                clearJobPolling();
                 stopLoadingSteps();
                 finishLoading();
                 showError(error.message || 'Could not generate image.');
@@ -1466,6 +1542,7 @@
         function onImageLoad() {
             isGeneratingImage = false;
             clearTimeout(window._imgTimeout);
+            clearJobPolling();
             stopLoadingSteps();
             finishLoading();
             document.getElementById('errorBox').style.display = 'none';
@@ -1477,6 +1554,7 @@
             if (!isGeneratingImage) return;
             isGeneratingImage = false;
             clearTimeout(window._imgTimeout);
+            clearJobPolling();
             stopLoadingSteps();
             finishLoading();
             showError('Could not load the generated image. Please try again.');

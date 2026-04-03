@@ -6,6 +6,7 @@ import tempfile
 load_dotenv()
 
 from extensions import db, limiter, login_manager
+from logging_utils import configure_logging
 from models import User
 from routes import register_blueprints
 
@@ -20,10 +21,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['RATELIMIT_STORAGE_URI'] = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')
+app.config['OPENROUTER_TEXT_MODEL'] = os.environ.get(
+    'OPENROUTER_TEXT_MODEL',
+    'qwen/qwen3-8b:free'
+)
 
 db.init_app(app)
 login_manager.init_app(app)
 limiter.init_app(app)
+configure_logging(app)
 
 
 @login_manager.user_loader

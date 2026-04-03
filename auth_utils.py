@@ -3,6 +3,7 @@ from functools import wraps
 from flask_login import current_user
 
 from extensions import db
+from models import User
 from response_utils import json_error
 
 
@@ -37,4 +38,15 @@ def consume_quota():
 
     current_user.refresh_daily_quota()
     current_user.daily_used += 1
+    db.session.commit()
+
+
+def consume_quota_for_user(user_id):
+    """Consume one quota unit for a specific user outside request context."""
+    user = User.query.get(user_id)
+    if not user:
+        return
+
+    user.refresh_daily_quota()
+    user.daily_used += 1
     db.session.commit()

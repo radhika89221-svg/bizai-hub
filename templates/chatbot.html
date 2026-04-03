@@ -237,6 +237,12 @@
             padding: 14px;
         }
 
+        .memory-note {
+            margin-top: 8px;
+            color: #888;
+            font-size: 13px;
+        }
+
         .history-meta {
             color: #888;
             font-size: 12px;
@@ -276,6 +282,7 @@
             <button class="quick-btn" onclick="askQuick(this.textContent)">How to increase online sales?</button>
             <button class="quick-btn" onclick="askQuick(this.textContent)">Social media growth tips</button>
         </div>
+        <div class="memory-note" id="memoryNote">Recent conversation context will be used automatically when relevant.</div>
 
         <div class="messages" id="messages">
             <div class="message bot-msg">
@@ -317,18 +324,24 @@
 
 {% block scripts %}
     <script>
+        let chatHistoryItems = [];
+
         function formatDate(value) {
             const date = new Date(value.replace(' ', 'T'));
             return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
         }
 
         function renderHistory(items) {
+            chatHistoryItems = items;
             const list = document.getElementById('historyList');
             if (!items.length) {
                 list.innerHTML = '<div class="history-empty">No saved conversations yet.</div>';
+                document.getElementById('memoryNote').textContent = 'Your next few messages will build a fresh conversation context.';
                 return;
             }
 
+            document.getElementById('memoryNote').textContent =
+                `Using up to ${Math.min(items.length, 4)} recent chat turns as memory for new replies.`;
             list.innerHTML = items.map((item) => `
                 <div class="history-item">
                     <div class="history-meta">${formatDate(item.created_at)}</div>
@@ -338,11 +351,31 @@
             `).join('');
         }
 
+        function hydrateRecentMessages(items) {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = `
+                <div class="message bot-msg">
+                    <div class="bot-label">BizGenius AI</div>
+                    Hello! I'm your AI Business Advisor. Ask me anything about
+                    business strategy, marketing, sales, branding, or growth.
+                    How can I help you today?
+                </div>
+            `;
+
+            items.slice(0, 3).reverse().forEach((item) => {
+                addMessage(item.input_text, 'user');
+                addMessage(item.output_text, 'bot');
+            });
+        }
+
         async function loadHistory() {
             try {
                 const response = await fetch('/api/history/chatbot?limit=6');
                 const data = await response.json();
-                if (data.success) renderHistory(data.items || []);
+                if (data.success) {
+                    renderHistory(data.items || []);
+                    hydrateRecentMessages(data.items || []);
+                }
             } catch (error) {
                 console.error('Chat history load failed:', error);
             }
@@ -390,6 +423,10 @@
 
                 if (data.success) {
                     addMessage(data.result, 'bot');
+                    if (typeof data.context_messages_used === 'number') {
+                        document.getElementById('memoryNote').textContent =
+                            `Reply used ${data.context_messages_used} recent chat turn${data.context_messages_used === 1 ? '' : 's'} of context.`;
+                    }
                     loadHistory();
                 } else {
                     addMessage('Sorry, I encountered an error. Please try again.', 'bot');

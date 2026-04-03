@@ -153,8 +153,129 @@
             color: white;
         }
 
+        .history-section {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 28px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .history-header h3 {
+            color: #fff;
+            font-size: 20px;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .history-btn {
+            padding: 10px 16px;
+            background: transparent;
+            color: #ccc;
+            border: 1px solid #333;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .history-btn:hover {
+            border-color: #667eea;
+            color: #fff;
+        }
+
+        .history-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .history-empty {
+            color: #888;
+            padding: 18px 0;
+        }
+
+        .history-item {
+            background: #181818;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .history-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #888;
+            flex-wrap: wrap;
+        }
+
+        .history-input {
+            color: #fff;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .history-output {
+            color: #cfcfcf;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            max-height: 140px;
+            overflow: auto;
+        }
+
+        .upload-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 30px;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .upload-card h3 {
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .upload-card p {
+            color: #888;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .upload-file {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 10px;
+            color: #ddd;
+        }
+
         @media (max-width: 768px) {
             .tools-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .upload-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -193,6 +314,12 @@
                 <button class="tool-btn" id="sttBtn" onclick="toggleListening()">
                     Start Listening
                 </button>
+                <button class="tool-btn-stop" id="transcriptBtn" onclick="createTranscriptInsights()">Turn Transcript Into Notes</button>
+                <div class="loading-small" id="transcriptLoading">
+                    <span class="mini-spinner"></span> AI is organizing your transcript...
+                </div>
+                <div class="tool-result" id="transcriptResult"></div>
+                <button class="copy-small" id="transcriptCopy" style="display:none;" onclick="copyText('transcriptResult')">Copy Notes</button>
                 <button class="copy-small" onclick="copyText('sttResult')">Copy Text</button>
             </div>
 
@@ -226,10 +353,49 @@
                 <button class="copy-small" id="notesCopy" style="display:none;" onclick="copyText('notesResult')">Copy Notes</button>
             </div>
         </div>
+
+        <div class="upload-card">
+            <h3>Upload Transcript or Audio File</h3>
+            <p>Upload a transcript file for backend processing, or upload an audio file for server-side transcription. If transcription fails, you can still provide a transcript hint as a fallback.</p>
+            <div class="upload-grid">
+                <div>
+                    <label style="display:block; color:#ccc; margin-bottom:10px;">Transcript or audio file</label>
+                    <input class="upload-file" id="uploadFile" type="file" accept=".txt,.md,.csv,audio/*">
+                </div>
+                <div>
+                    <label style="display:block; color:#ccc; margin-bottom:10px;">Optional transcript hint for raw audio</label>
+                    <textarea class="tool-input" id="transcriptHint" rows="4" placeholder="Paste transcript text here if you are uploading an audio file..."></textarea>
+                </div>
+            </div>
+            <button class="tool-btn" id="uploadBtn" onclick="processUpload()">Process Upload</button>
+            <div class="loading-small" id="uploadLoading">
+                <span class="mini-spinner"></span> Backend is processing your upload...
+            </div>
+            <div class="tool-result" id="uploadResult"></div>
+            <button class="copy-small" id="uploadCopy" style="display:none;" onclick="copyText('uploadResult')">Copy Upload Notes</button>
+        </div>
+
+        <div class="history-section">
+            <div class="history-header">
+                <h3>Recent Audio Tool History</h3>
+                <div class="history-actions">
+                    <button class="history-btn" onclick="loadHistory()">Refresh</button>
+                    <button class="history-btn" onclick="clearHistory()">Clear History</button>
+                </div>
+            </div>
+            <div class="history-list" id="historyList">
+                <div class="history-empty">No saved audio generations yet.</div>
+            </div>
+        </div>
 {% endblock %}
 
 {% block scripts %}
     <script>
+        function formatDate(value) {
+            const date = new Date(value.replace(' ', 'T'));
+            return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+        }
+
         function showStatus(message, type = 'error') {
             const box = document.getElementById('statusBox');
             box.className = `status-box ${type}`;
@@ -242,6 +408,100 @@
             box.style.display = 'none';
             box.textContent = '';
             box.className = 'status-box';
+        }
+
+        function renderHistory(items) {
+            const list = document.getElementById('historyList');
+            if (!items.length) {
+                list.innerHTML = '<div class="history-empty">No saved audio generations yet.</div>';
+                return;
+            }
+
+            list.innerHTML = items.map((item) => `
+                <div class="history-item">
+                    <div class="history-meta">
+                        <span>${formatHistoryKind(item.meta?.kind)}</span>
+                        <span>${formatDate(item.created_at)}</span>
+                    </div>
+                    <div class="history-input">${item.input_text}</div>
+                    <div class="history-output">${item.output_text}</div>
+                </div>
+            `).join('');
+        }
+
+        function formatHistoryKind(kind) {
+            if (kind === 'presentation-notes') return 'Presentation notes';
+            if (kind === 'transcript-insights') return 'Transcript notes';
+            if (kind === 'uploaded-transcript') return 'Uploaded transcript';
+            if (kind === 'audio-upload-with-transcript') return 'Audio upload with transcript';
+            if (kind === 'audio-upload-transcribed') return 'Audio upload transcription';
+            if (kind === 'pasted-transcript') return 'Pasted transcript';
+            return 'Podcast script';
+        }
+
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history/audio-tools?limit=8');
+                const data = await response.json();
+                if (data.success) {
+                    renderHistory(data.items || []);
+                }
+            } catch (error) {
+                console.error('Audio history load failed:', error);
+            }
+        }
+
+        async function clearHistory() {
+            try {
+                const response = await fetch('/api/history/audio-tools/clear', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    renderHistory([]);
+                    showStatus('Audio tool history cleared.', 'success');
+                } else {
+                    showStatus(data.error || 'Could not clear history right now.');
+                }
+            } catch (error) {
+                showStatus('Could not clear history right now.');
+            }
+        }
+
+        async function generateAudioContent(endpoint, value, buttonId, loadingId, resultId, copyId, emptyMessage, fieldName = 'topic') {
+            if (!value) {
+                showStatus(emptyMessage);
+                return;
+            }
+
+            hideStatus();
+            document.getElementById(buttonId).disabled = true;
+            document.getElementById(loadingId).style.display = 'block';
+            document.getElementById(resultId).style.display = 'none';
+            document.getElementById(copyId).style.display = 'none';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ [fieldName]: value })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById(resultId).textContent = data.result;
+                    document.getElementById(resultId).style.display = 'block';
+                    document.getElementById(copyId).style.display = 'inline-block';
+                    loadHistory();
+                } else {
+                    showStatus(data.error || 'The AI request could not be completed.');
+                }
+            } catch (error) {
+                showStatus('Could not reach the server right now.');
+            }
+
+            document.getElementById(loadingId).style.display = 'none';
+            document.getElementById(buttonId).disabled = false;
         }
 
         // ===== TEXT TO SPEECH =====
@@ -329,7 +589,9 @@
             };
 
             recognition.onerror = (event) => {
-                console.log('Speech error:', event.error);
+                if (event.error && event.error !== 'no-speech') {
+                    showStatus(`Speech recognition error: ${event.error}.`);
+                }
                 btn.textContent = 'Start Listening';
                 btn.style.background = '';
                 isListening = false;
@@ -338,80 +600,102 @@
             recognition.start();
         }
 
-        // ===== AI CONTENT GENERATION (with retry) =====
-        async function callAI(message, maxRetries = 2) {
-            for (let attempt = 0; attempt <= maxRetries; attempt++) {
-                try {
-                    const response = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ message: message })
-                    });
-                    const data = await response.json();
-
-                    if (data.success && !data.result.includes('all AI models are busy')) {
-                        return data.result;
-                    }
-
-                    if (attempt < maxRetries) {
-                        console.log(`Attempt ${attempt + 1} failed, retrying in 3 seconds...`);
-                        await new Promise(r => setTimeout(r, 3000));
-                    }
-                } catch (e) {
-                    if (attempt < maxRetries) {
-                        await new Promise(r => setTimeout(r, 3000));
-                    }
-                }
-            }
-            return 'AI is temporarily busy. Please wait 30 seconds and try again. This happens with free AI models during high traffic.';
-        }
-
         // PODCAST SCRIPT
         async function generatePodcast() {
             const topic = document.getElementById('podcastTopic').value.trim();
-            if (!topic) { showStatus('Enter a topic for the podcast script.'); return; }
-
-            hideStatus();
-            document.getElementById('podcastBtn').disabled = true;
-            document.getElementById('podcastLoading').style.display = 'block';
-            document.getElementById('podcastResult').style.display = 'none';
-            document.getElementById('podcastCopy').style.display = 'none';
-
-            const result = await callAI(
-                `Write a professional 2-minute podcast script about: ${topic}. 
-                Include: [INTRO with hook], [MAIN CONTENT with 3 key points], [OUTRO with call to action]. 
-                Make it engaging, conversational, and ready to read aloud.`
+            await generateAudioContent(
+                '/api/audio-tools/podcast-script',
+                topic,
+                'podcastBtn',
+                'podcastLoading',
+                'podcastResult',
+                'podcastCopy',
+                'Enter a topic for the podcast script.',
+                'topic'
             );
-
-            document.getElementById('podcastResult').textContent = result;
-            document.getElementById('podcastResult').style.display = 'block';
-            document.getElementById('podcastCopy').style.display = 'inline-block';
-            document.getElementById('podcastLoading').style.display = 'none';
-            document.getElementById('podcastBtn').disabled = false;
         }
 
         // PRESENTATION NOTES
         async function generateNotes() {
             const topic = document.getElementById('presentationTopic').value.trim();
-            if (!topic) { showStatus('Enter a topic for the speaker notes.'); return; }
+            await generateAudioContent(
+                '/api/audio-tools/presentation-notes',
+                topic,
+                'notesBtn',
+                'notesLoading',
+                'notesResult',
+                'notesCopy',
+                'Enter a topic for the speaker notes.',
+                'topic'
+            );
+        }
+
+        async function createTranscriptInsights() {
+            const transcript = document.getElementById('sttResult').textContent.trim();
+            await generateAudioContent(
+                '/api/audio-tools/transcript-insights',
+                transcript,
+                'transcriptBtn',
+                'transcriptLoading',
+                'transcriptResult',
+                'transcriptCopy',
+                'Capture or paste some speech transcript first.',
+                'transcript'
+            );
+        }
+
+        async function processUpload() {
+            const fileInput = document.getElementById('uploadFile');
+            const file = fileInput.files[0];
+            const transcriptHint = document.getElementById('transcriptHint').value.trim();
+
+            if (!file && !transcriptHint) {
+                showStatus('Upload a transcript/audio file or paste transcript text first.');
+                return;
+            }
 
             hideStatus();
-            document.getElementById('notesBtn').disabled = true;
-            document.getElementById('notesLoading').style.display = 'block';
-            document.getElementById('notesResult').style.display = 'none';
-            document.getElementById('notesCopy').style.display = 'none';
+            document.getElementById('uploadBtn').disabled = true;
+            document.getElementById('uploadLoading').style.display = 'block';
+            document.getElementById('uploadResult').style.display = 'none';
+            document.getElementById('uploadCopy').style.display = 'none';
 
-            const result = await callAI(
-                `Generate professional speaker notes for a business presentation about: ${topic}. 
-                Include: Opening statement, 4-5 key talking points with details, 
-                transition phrases, and a strong closing. Make it ready to use.`
-            );
+            try {
+                const formData = new FormData();
+                if (file) {
+                    if ((file.type || '').startsWith('audio/')) {
+                        formData.append('audio_file', file);
+                    } else {
+                        formData.append('transcript_file', file);
+                    }
+                }
+                if (transcriptHint) {
+                    formData.append('transcript_hint', transcriptHint);
+                    formData.append('transcript_text', transcriptHint);
+                }
 
-            document.getElementById('notesResult').textContent = result;
-            document.getElementById('notesResult').style.display = 'block';
-            document.getElementById('notesCopy').style.display = 'inline-block';
-            document.getElementById('notesLoading').style.display = 'none';
-            document.getElementById('notesBtn').disabled = false;
+                document.getElementById('uploadResult').textContent = '';
+
+                const response = await fetch('/api/audio-tools/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('uploadResult').textContent = data.result;
+                    document.getElementById('uploadResult').style.display = 'block';
+                    document.getElementById('uploadCopy').style.display = 'inline-block';
+                    loadHistory();
+                } else {
+                    showStatus(data.error || 'Upload processing failed.');
+                }
+            } catch (error) {
+                showStatus('Could not process the upload right now.');
+            }
+
+            document.getElementById('uploadLoading').style.display = 'none';
+            document.getElementById('uploadBtn').disabled = false;
         }
 
         // COPY TEXT
@@ -421,5 +705,7 @@
                 showStatus('Copied to clipboard.', 'success');
             });
         }
+
+        loadHistory();
     </script>
 {% endblock %}

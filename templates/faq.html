@@ -1,0 +1,55 @@
+{% extends "tool_base.html" %}
+
+{% block title %}FAQ - BizGenius AI{% endblock %}
+{% block heading %}Frequently Asked Questions{% endblock %}
+{% block subtitle %}Quick answers about accounts, quotas, images, and audio tools{% endblock %}
+
+{% block extra_css %}
+        .faq-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .faq-item {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 18px;
+            padding: 22px;
+        }
+
+        .faq-item h3 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .faq-item p {
+            color: #c8c8c8;
+            line-height: 1.7;
+        }
+{% endblock %}
+
+{% block body %}
+    <div class="faq-list">
+        <div class="faq-item">
+            <h3>Why do I need to log in?</h3>
+            <p>Login keeps your tool history, quota usage, dashboard activity, and protected APIs tied to your account.</p>
+        </div>
+        <div class="faq-item">
+            <h3>What happens when I hit my daily quota?</h3>
+            <p>The app blocks new AI actions for the rest of the day and resets automatically on the next quota day.</p>
+        </div>
+        <div class="faq-item">
+            <h3>How does image generation work now?</h3>
+            <p>BizGenius AI creates an image job, polls progress, tries multiple providers in fallback order, and reuses cached images when the same prompt and size already exist.</p>
+        </div>
+        <div class="faq-item">
+            <h3>Can I upload files in audio tools?</h3>
+            <p>Yes. You can now upload transcript files like <code>.txt</code>, <code>.md</code>, and <code>.csv</code> for backend processing. Direct binary audio uploads still need a dedicated server-side transcription provider, so the app gives you a clear fallback message when one is not configured.</p>
+        </div>
+        <div class="faq-item">
+            <h3>Where can I find my saved work?</h3>
+            <p>Each tool has its own recent history, and your dashboard shows recent cross-tool activity with export options.</p>
+        </div>
+    </div>
+{% endblock %}

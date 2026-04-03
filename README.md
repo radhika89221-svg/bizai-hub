@@ -13,6 +13,9 @@ BizGenius AI is a Flask-based business toolkit that combines multiple AI-powered
 - User accounts with login/register/logout
 - Dashboard with quota tracking
 - Local history/persistence for major tools
+- Structured request logging
+- Stable default text model configuration
+- Image caching for repeated generations
 
 ## Tech Stack
 
@@ -21,7 +24,6 @@ BizGenius AI is a Flask-based business toolkit that combines multiple AI-powered
 - Flask-Login
 - Flask-SQLAlchemy
 - Flask-Limiter
-- TextBlob
 - Requests
 - Gunicorn
 - Hugging Face Inference
@@ -73,6 +75,7 @@ HF_TOKEN=your_huggingface_token
 SECRET_KEY=your_secret_key
 DATABASE_URL=optional_database_url
 RATELIMIT_STORAGE_URI=optional_rate_limit_storage
+OPENROUTER_TEXT_MODEL=optional_openrouter_text_model
 ```
 
 Notes:
@@ -82,6 +85,7 @@ Notes:
 - `SECRET_KEY` is used for login sessions and flash messages.
 - `DATABASE_URL` is optional. If omitted, the app uses a local SQLite database.
 - `RATELIMIT_STORAGE_URI` is optional. Default is in-memory limiter storage for development.
+- `OPENROUTER_TEXT_MODEL` is optional. It sets the single default text model used for AI text responses.
 - Do not commit `.env`.
 
 ## Install Locally
@@ -92,12 +96,6 @@ From the project folder:
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-If TextBlob corpora are missing in your environment, install them:
-
-```powershell
-python -m textblob.download_corpora
 ```
 
 ## Run Locally
@@ -155,6 +153,7 @@ The image generator uses backend provider fallback in this order:
 3. Pollinations
 
 Generated images are saved into `static/generated/` and then served back to the browser with a normal static URL.
+Repeated image requests with the same prompt and size are reused from cache when available.
 
 ## History / Persistence
 
@@ -182,7 +181,9 @@ When users are logged in, history is stored per-user in the database instead of 
 - JSON APIs return `401` when accessed without authentication
 - Daily quota is tracked per user
 - Major AI endpoints are rate limited
+- Image generation has an extra short-window limiter to reduce burst load
 - Dashboard shows current plan, usage, and recent activity
+- API requests are logged in a structured format with status, latency, path, and user ID when available
 
 ## Main Routes
 

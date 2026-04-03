@@ -40,6 +40,20 @@
         }
         .sample-btn:hover { border-color: #667eea; color: #667eea; }
 
+        .csv-upload {
+            margin-bottom: 20px;
+            padding: 18px;
+            background: #141414;
+            border: 1px dashed #333;
+            border-radius: 14px;
+        }
+
+        .csv-upload input {
+            width: 100%;
+            margin-top: 10px;
+            color: #ccc;
+        }
+
         .generate-btn {
             width: 100%; padding: 18px;
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -101,6 +115,40 @@
             color: #ddd; white-space: pre-wrap;
         }
         .prediction-text h4 { color: #667eea; margin-bottom: 15px; font-size: 18px; }
+
+        .forecast-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .forecast-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .forecast-card .month {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .forecast-card .value {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .forecast-card .range {
+            color: #9fa8da;
+            font-size: 12px;
+            line-height: 1.5;
+        }
 
         .history-section {
             background: #111;
@@ -234,6 +282,12 @@
                 </div>
             </div>
 
+            <div class="csv-upload">
+                <label>Or upload a CSV file with monthly sales values</label>
+                <input type="file" id="csvFile" accept=".csv,text/csv" onchange="handleCsvUpload(event)">
+                <p id="csvStatus" style="color:#888; margin-top:10px;">No CSV uploaded yet.</p>
+            </div>
+
             <button class="generate-btn" id="predictBtn" onclick="predictSales()">
                 Predict Future Sales
             </button>
@@ -273,6 +327,8 @@
                 <div class="chart-bars" id="chartBars"></div>
             </div>
 
+            <div class="forecast-grid" id="forecastGrid"></div>
+
             <!-- AI Prediction -->
             <div class="prediction-text">
                 <h4>AI Analysis & Predictions</h4>
@@ -296,6 +352,8 @@
 
 {% block scripts %}
     <script>
+        let uploadedCsvData = '';
+
         function formatDate(value) {
             const date = new Date(value.replace(' ', 'T'));
             return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
@@ -325,13 +383,34 @@
             list.innerHTML = items.map((item) => `
                 <div class="history-item">
                     <div class="history-meta">
-                        <span>Prediction</span>
+                        <span>${item.meta?.trend || 'Prediction'}${item.meta?.method ? ` • ${item.meta.method}` : ''}</span>
                         <span>${formatDate(item.created_at)}</span>
                     </div>
                     <div class="history-input">${item.input_text}</div>
                     <div class="history-output">${item.output_text}</div>
                 </div>
             `).join('');
+        }
+
+        function handleCsvUpload(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                uploadedCsvData = '';
+                document.getElementById('csvStatus').textContent = 'No CSV uploaded yet.';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                uploadedCsvData = reader.result || '';
+                document.getElementById('csvStatus').textContent =
+                    `${file.name} loaded. CSV values will be used in the next prediction.`;
+            };
+            reader.onerror = () => {
+                uploadedCsvData = '';
+                showStatus('Could not read the CSV file.');
+            };
+            reader.readAsText(file);
         }
 
         async function loadHistory() {
@@ -375,11 +454,14 @@
             const salesData = [];
             for (let i = 1; i <= 8; i++) {
                 const val = document.getElementById('month' + i).value;
-                if (!val) {
-                    showStatus('Please fill all 8 months of sales data.');
-                    return;
+                if (val) {
+                    salesData.push(parseInt(val));
                 }
-                salesData.push(parseInt(val));
+            }
+
+            if (!salesData.length && !uploadedCsvData) {
+                showStatus('Please fill in sales data or upload a CSV file.');
+                return;
             }
 
             // Show loading
@@ -392,16 +474,20 @@
                 const response = await fetch('/api/predict-sales', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sales_data: salesData.join(', ') })
+                    body: JSON.stringify({
+                        sales_data: salesData.join(', '),
+                        csv_data: uploadedCsvData
+                    })
                 });
 
                 const data = await response.json();
 
                 if (data.success) {
                     // Calculate stats
-                    const total = salesData.reduce((a, b) => a + b, 0);
-                    const avg = Math.round(total / salesData.length);
-                    const growth = ((salesData[7] - salesData[0]) / salesData[0] * 100).toFixed(1);
+                    const actualSeries = data.sales_series || salesData;
+                    const total = actualSeries.reduce((a, b) => a + b, 0);
+                    const avg = Math.round(total / actualSeries.length);
+                    const growth = Number(data.growth_rate || 0).toFixed(1);
 
                     document.getElementById('totalSales').textContent = '$' + total.toLocaleString();
                     document.getElementById('avgSales').textContent = '$' + avg.toLocaleString();
@@ -410,8 +496,8 @@
                         growth >= 0 ? '#4CAF50' : '#f44336';
 
                     // Build chart
-                    const maxVal = Math.max(...salesData);
-                    const chartHTML = salesData.map((val, i) => {
+                    const maxVal = Math.max(...actualSeries);
+                    const chartHTML = actualSeries.map((val, i) => {
                         const height = (val / maxVal * 160);
                         return `
                             <div class="bar-item">
@@ -422,6 +508,20 @@
                         `;
                     }).join('');
                     document.getElementById('chartBars').innerHTML = chartHTML;
+
+                    const forecast = data.forecast || [];
+                    const lower = data.lower_bounds || [];
+                    const upper = data.upper_bounds || [];
+                    document.getElementById('forecastGrid').innerHTML = forecast.map((value, index) => `
+                        <div class="forecast-card">
+                            <div class="month">Month +${index + 1}</div>
+                            <div class="value">$${Math.round(value).toLocaleString()}</div>
+                            <div class="range">
+                                Range: $${Math.round(lower[index] || value).toLocaleString()} to
+                                $${Math.round(upper[index] || value).toLocaleString()}
+                            </div>
+                        </div>
+                    `).join('');
 
                     // Show AI analysis
                     document.getElementById('predictionResult').textContent = data.result;

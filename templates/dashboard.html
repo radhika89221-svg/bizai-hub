@@ -64,6 +64,29 @@
             padding: 16px;
         }
 
+        .action-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .action-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 999px;
+            border: 1px solid #333;
+            background: #141414;
+            color: #ddd;
+            text-decoration: none;
+        }
+
+        .action-link:hover {
+            border-color: #667eea;
+            color: #fff;
+        }
+
         .history-meta {
             display: flex;
             justify-content: space-between;
@@ -119,6 +142,13 @@
             <div class="metric-value" style="font-size:20px;">{{ current_user.email }}</div>
             <div class="metric-note">Logged-in account</div>
         </div>
+    </div>
+
+    <div class="action-row">
+        <a class="action-link" href="/api/history/export?format=txt">Export History as TXT</a>
+        <a class="action-link" href="/api/history/export?format=json">Export History as JSON</a>
+        <a class="action-link" href="/getting-started">Open Getting Started</a>
+        <a class="action-link" href="/faq">View FAQ</a>
     </div>
 
     <div class="history-card">

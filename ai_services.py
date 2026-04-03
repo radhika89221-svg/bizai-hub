@@ -1,16 +1,68 @@
 import base64
+import csv
+import hashlib
 import math
 import os
 import random
+import re
+import statistics
+import tempfile
 import urllib.parse
-from io import BytesIO
+from collections import Counter
+from io import BytesIO, StringIO
 from uuid import uuid4
 
 import requests
 
+from logging_utils import log_event
+
 
 DEFAULT_REQUEST_TIMEOUT = 60
 IMAGE_REQUEST_TIMEOUT = 120
+DEFAULT_TEXT_MODEL = os.environ.get(
+    "OPENROUTER_TEXT_MODEL",
+    "qwen/qwen3-8b:free"
+)
+PROMPT_INJECTION_PATTERNS = [
+    "ignore previous instructions",
+    "ignore all previous instructions",
+    "system prompt",
+    "developer message",
+    "reveal your instructions",
+    "jailbreak",
+    "act as root",
+    "bypass safety",
+    "pretend you are",
+]
+STOPWORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "been", "but", "by", "for", "from",
+    "had", "has", "have", "i", "if", "in", "into", "is", "it", "its", "just", "my",
+    "of", "on", "or", "our", "so", "that", "the", "their", "them", "this", "to",
+    "too", "was", "we", "were", "with", "you", "your"
+}
+TEXT_UPLOAD_EXTENSIONS = {'.txt', '.md', '.csv'}
+TEXT_UPLOAD_MIME_PREFIXES = ('text/', 'application/csv')
+MAX_AUDIO_UPLOAD_BYTES = 15 * 1024 * 1024
+POSITIVE_WORDS = {
+    "amazing", "awesome", "best", "brilliant", "easy", "excellent", "fast", "friendly",
+    "good", "great", "helpful", "impressive", "love", "loved", "perfect", "positive",
+    "professional", "quick", "reliable", "smooth", "strong", "useful", "valuable"
+}
+NEGATIVE_WORDS = {
+    "awful", "bad", "broke", "broken", "confusing", "delayed", "disappointed",
+    "disappointing", "frustrating", "hate", "horrible", "late", "poor", "problem",
+    "refund", "rude", "slow", "terrible", "unhelpful", "waste", "worst"
+}
+SUBJECTIVE_WORDS = POSITIVE_WORDS | NEGATIVE_WORDS | {
+    "believe", "feel", "think", "prefer", "expect", "recommend", "should", "wish"
+}
+EMOTION_LEXICON = {
+    "joy": {"amazing", "awesome", "best", "great", "love", "loved", "perfect"},
+    "trust": {"reliable", "professional", "helpful", "smooth", "valuable"},
+    "anger": {"awful", "hate", "horrible", "rude", "worst"},
+    "frustration": {"confusing", "delayed", "frustrating", "problem", "slow", "unhelpful"},
+    "disappointment": {"bad", "broke", "disappointed", "poor", "refund"},
+}
 
 
 def get_openrouter_key():
@@ -25,13 +77,35 @@ def get_hf_token():
 
 def require_text(data, field_name, label=None, max_length=4000):
     """Validate and normalize a required text field."""
-    value = (data.get(field_name) or '').strip()
+    value = normalize_user_text(data.get(field_name) or '')
     readable_label = label or field_name.replace('_', ' ').title()
 
     if not value:
         return None, f'{readable_label} is required.'
     if len(value) > max_length:
         return None, f'{readable_label} is too long.'
+    return value, None
+
+
+def normalize_user_text(value):
+    """Collapse noisy whitespace in incoming text."""
+    return re.sub(r'\s+', ' ', str(value or '')).strip()
+
+
+def detect_prompt_injection(value):
+    """Return a human-friendly reason when the input resembles prompt injection."""
+    normalized = normalize_user_text(value).lower()
+    for pattern in PROMPT_INJECTION_PATTERNS:
+        if pattern in normalized:
+            return f'Please remove instruction-like text such as "{pattern}" and try again.'
+    return None
+
+
+def parse_optional_text(data, field_name, max_length=4000):
+    """Normalize optional text fields and enforce max length when present."""
+    value = normalize_user_text(data.get(field_name) or '')
+    if value and len(value) > max_length:
+        return None, f'{field_name.replace("_", " ").title()} is too long.'
     return value, None
 
 
@@ -52,19 +126,19 @@ def parse_image_dimensions(data):
 
 def sentiment_metadata(polarity):
     """Map polarity score to UI label and color."""
-    if polarity > 0.1:
+    if polarity > 0.12:
         return "Positive", "#4CAF50"
-    if polarity < -0.1:
+    if polarity < -0.12:
         return "Negative", "#f44336"
     return "Neutral", "#FF9800"
 
 
-def ask_ai(prompt):
+def ask_ai(prompt, models=None, fallback_text=None):
     """Send prompt to AI and get response."""
     try:
         openrouter_key = get_openrouter_key()
         if not openrouter_key:
-            return "AI is not configured. Add OPENROUTER_KEY to the environment."
+            return fallback_text or "AI is not configured. Add OPENROUTER_KEY to the environment."
 
         url = "https://openrouter.ai/api/v1/chat/completions"
         headers = {
@@ -73,37 +147,388 @@ def ask_ai(prompt):
             "HTTP-Referer": "http://localhost:5000",
             "X-Title": "BizGenius AI"
         }
-        models_to_try = [
-            "google/gemma-3-27b-it:free",
-            "deepseek/deepseek-chat-v3-0324:free",
-            "qwen/qwen3-8b:free",
-            "meta-llama/llama-3.3-8b-instruct:free",
-            "mistralai/mistral-small-3.1-24b-instruct:free",
-            "google/gemma-3-4b-it:free",
-        ]
 
-        for model in models_to_try:
-            print(f"[AI] Trying: {model}")
-            response = requests.post(
-                url,
-                headers=headers,
-                json={"model": model, "messages": [{"role": "user", "content": prompt}]},
-                timeout=DEFAULT_REQUEST_TIMEOUT
+        model = (models or [DEFAULT_TEXT_MODEL])[0]
+        log_event('ai_request_started', model=model)
+        response = requests.post(
+            url,
+            headers=headers,
+            json={"model": model, "messages": [{"role": "user", "content": prompt}]},
+            timeout=DEFAULT_REQUEST_TIMEOUT
+        )
+        result = response.json()
+
+        if 'choices' in result and len(result['choices']) > 0:
+            log_event('ai_request_succeeded', model=model)
+            return result['choices'][0]['message']['content']
+
+        if 'error' in result:
+            log_event(
+                'ai_request_failed',
+                model=model,
+                status_code=response.status_code,
+                error=result['error'].get('message', '')
             )
-            result = response.json()
 
-            if 'choices' in result and len(result['choices']) > 0:
-                print(f"[AI] Success with: {model}")
-                return result['choices'][0]['message']['content']
-
-            if 'error' in result:
-                print(f"[AI] Failed {model}: {result['error'].get('message', '')}")
-
-        return "AI is temporarily busy. Please try again in a minute."
+        return fallback_text or "AI is temporarily busy. Please try again in a minute."
     except requests.exceptions.Timeout:
-        return "Request timed out. Please try again."
+        log_event('ai_request_timeout', model=(models or [DEFAULT_TEXT_MODEL])[0])
+        return fallback_text or "Request timed out. Please try again."
     except Exception as exc:
-        return f"Error: {str(exc)}"
+        log_event('ai_request_exception', model=(models or [DEFAULT_TEXT_MODEL])[0], error=str(exc))
+        return fallback_text or f"Error: {str(exc)}"
+
+
+def build_content_prompt(content_type, topic, details='', variation_mode='fresh', previous_output=''):
+    """Create a safer, more controllable content-writing prompt."""
+    instructions = [
+        "You are a professional business content writer.",
+        f"Write a {content_type} about: {topic}.",
+    ]
+    if details:
+        instructions.append(f"Additional details to respect: {details}.")
+    if variation_mode == 'variation' and previous_output:
+        instructions.append("Create a fresh alternate version, not a paraphrase, of the previous draft.")
+        instructions.append(f"Previous draft for reference: {previous_output}")
+    elif variation_mode == 'rewrite' and previous_output:
+        instructions.append("Rewrite the previous draft into a cleaner, stronger version while keeping the same goal.")
+        instructions.append(f"Previous draft for reference: {previous_output}")
+    instructions.append("Make it professional, engaging, and ready to use.")
+    instructions.append("Do not include setup notes or explanation, only the final content.")
+    return "\n".join(instructions)
+
+
+def build_content_fallback(content_type, topic, details='', variation_mode='fresh'):
+    """Provide a usable content draft if the AI provider is unavailable."""
+    opener = {
+        "Marketing Email": f"Subject: A smarter next step for {topic}",
+        "Product Description": f"{topic}\n\n",
+        "Social Media Caption": f"{topic}\n\n",
+    }.get(content_type, f"{content_type}: {topic}\n\n")
+    angle = "Try a fresh angle" if variation_mode == 'variation' else "Keep the message direct and useful"
+    return (
+        f"{opener}"
+        f"This draft focuses on {topic}. {angle}. "
+        f"{details or 'Highlight the value, the key benefit, and a clear call to action.'}"
+    )
+
+
+def build_chat_prompt(user_message, history_items):
+    """Include the user's recent chat history so answers feel continuous."""
+    history_lines = []
+    for item in reversed(history_items[-4:]):
+        history_lines.append(f"User: {item.get('input_text', '')}")
+        history_lines.append(f"Assistant: {item.get('output_text', '')}")
+    history_block = "\n".join(history_lines) if history_lines else "No recent conversation."
+    return f"""You are BizGenius AI, a helpful business advisor chatbot.
+Give practical, actionable business advice.
+Be concise but thorough. Use bullets when helpful.
+Continue the conversation naturally using the recent context below when relevant.
+
+Recent conversation:
+{history_block}
+
+Current user message:
+{user_message}"""
+
+
+def build_chat_fallback(user_message, history_items):
+    """Provide a simple business-oriented fallback reply."""
+    context_hint = ""
+    if history_items:
+        context_hint = f"You've recently been discussing {history_items[0].get('input_text', 'business strategy')}. "
+    return (
+        f"{context_hint}Here are three practical next steps for your question about '{user_message}':\n"
+        "1. Clarify the goal, audience, and timeframe.\n"
+        "2. Start with one measurable action you can test this week.\n"
+        "3. Review results quickly and refine based on what works."
+    )
+
+
+def tokenize_text(text):
+    """Split text into lowercase word tokens."""
+    return re.findall(r"[a-zA-Z']+", text.lower())
+
+
+def extract_top_keywords(text, limit=5):
+    """Return the most useful repeated keywords from free-form text."""
+    tokens = [token for token in tokenize_text(text) if len(token) > 2 and token not in STOPWORDS]
+    counts = Counter(tokens)
+    return [word for word, _ in counts.most_common(limit)]
+
+
+def analyze_sentiment_signals(text):
+    """Return richer sentiment metadata without relying on external NLP packages."""
+    tokens = tokenize_text(text)
+    token_count = len(tokens) or 1
+    positive_hits = sum(1 for token in tokens if token in POSITIVE_WORDS)
+    negative_hits = sum(1 for token in tokens if token in NEGATIVE_WORDS)
+    subjective_hits = sum(1 for token in tokens if token in SUBJECTIVE_WORDS)
+
+    polarity = max(min((positive_hits - negative_hits) / max(token_count / 3, 1), 1), -1)
+    subjectivity = min(subjective_hits / max(token_count / 2, 1), 1)
+    label, color = sentiment_metadata(polarity)
+
+    emotion_scores = {
+        emotion: sum(1 for token in tokens if token in words)
+        for emotion, words in EMOTION_LEXICON.items()
+    }
+    emotion, emotion_score = max(emotion_scores.items(), key=lambda item: item[1], default=("neutral", 0))
+    if emotion_score == 0:
+        emotion = "neutral"
+
+    confidence = min(
+        0.98,
+        0.38 + abs(polarity) * 0.45 + min(positive_hits + negative_hits, 5) * 0.05
+    )
+
+    return {
+        'polarity': round(polarity, 2),
+        'subjectivity': round(subjectivity, 2),
+        'label': label,
+        'color': color,
+        'confidence': round(confidence, 2),
+        'top_keywords': extract_top_keywords(text, 5),
+        'emotion': emotion.replace('-', ' ').title()
+    }
+
+
+def build_sentiment_prompt(text, sentiment):
+    """Create a richer sentiment analysis prompt for the AI explanation layer."""
+    keywords = ", ".join(sentiment['top_keywords']) or "none noted"
+    return f"""Analyze this customer review in a concise business-friendly way:
+"{text}"
+
+Detected sentiment summary:
+- Label: {sentiment['label']}
+- Confidence: {sentiment['confidence']}
+- Emotion: {sentiment['emotion']}
+- Top keywords: {keywords}
+
+Provide:
+1. Overall mood
+2. What customers liked
+3. What customers disliked
+4. One smart business response"""
+
+
+def build_sentiment_fallback(text, sentiment):
+    """Fallback explanation when the AI provider is unavailable."""
+    keywords = ", ".join(sentiment['top_keywords']) or "no dominant keywords"
+    return (
+        f"Overall mood: {sentiment['label']} with {sentiment['confidence'] * 100:.0f}% confidence.\n"
+        f"Likely emotion: {sentiment['emotion']}.\n"
+        f"Top keywords: {keywords}.\n"
+        "Business suggestion: acknowledge the feedback directly, reinforce what worked, and fix the most obvious pain point."
+    )
+
+
+def parse_sales_input(sales_text='', csv_text=''):
+    """Parse either comma-separated sales data or uploaded CSV content."""
+    values = []
+
+    if csv_text:
+        reader = csv.reader(StringIO(csv_text))
+        for row in reader:
+            for cell in row:
+                cleaned = re.sub(r'[^0-9.\-]', '', cell or '')
+                if cleaned and re.fullmatch(r'-?\d+(?:\.\d+)?', cleaned):
+                    values.append(float(cleaned))
+
+    if not values and sales_text:
+        chunks = re.split(r'[\s,]+', sales_text.strip())
+        for chunk in chunks:
+            cleaned = re.sub(r'[^0-9.\-]', '', chunk)
+            if cleaned and re.fullmatch(r'-?\d+(?:\.\d+)?', cleaned):
+                values.append(float(cleaned))
+
+    if len(values) < 4:
+        return None, 'Please provide at least 4 months of sales data.'
+    if len(values) > 36:
+        return None, 'Please limit sales input to 36 data points.'
+    if any(value < 0 for value in values):
+        return None, 'Sales values cannot be negative.'
+    return values, None
+
+
+def holt_linear_forecast(series, periods=3, alpha=0.55, beta=0.35):
+    """Simple Holt trend smoothing implemented locally."""
+    level = series[0]
+    trend = series[1] - series[0] if len(series) > 1 else 0
+    fitted = [series[0]]
+
+    for actual in series[1:]:
+        previous_level = level
+        level = alpha * actual + (1 - alpha) * (level + trend)
+        trend = beta * (level - previous_level) + (1 - beta) * trend
+        fitted.append(level + trend)
+
+    forecasts = [max(level + trend * step, 0) for step in range(1, periods + 1)]
+    return forecasts, fitted
+
+
+def linear_regression_forecast(series, periods=3):
+    """Fallback forecaster for shorter datasets."""
+    count = len(series)
+    x_values = list(range(count))
+    x_mean = sum(x_values) / count
+    y_mean = sum(series) / count
+    numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(x_values, series))
+    denominator = sum((x - x_mean) ** 2 for x in x_values) or 1
+    slope = numerator / denominator
+    intercept = y_mean - slope * x_mean
+    fitted = [intercept + slope * x for x in x_values]
+    forecasts = [max(intercept + slope * (count + step), 0) for step in range(periods)]
+    return forecasts, fitted
+
+
+def analyze_sales_series(series):
+    """Return forecasts, intervals, and business-readable metadata."""
+    if len(series) >= 6:
+        forecasts, fitted = holt_linear_forecast(series, periods=3)
+        method = 'holt-trend'
+    else:
+        forecasts, fitted = linear_regression_forecast(series, periods=3)
+        method = 'linear-fallback'
+
+    errors = [actual - estimate for actual, estimate in zip(series, fitted)]
+    error_std = statistics.pstdev(errors) if len(errors) > 1 else max(series[-1] * 0.08, 1)
+    interval_size = max(error_std * 1.65, max(series[-1] * 0.06, 1))
+
+    lower_bounds = [max(value - interval_size, 0) for value in forecasts]
+    upper_bounds = [value + interval_size for value in forecasts]
+
+    growth_rate = ((series[-1] - series[0]) / series[0] * 100) if series[0] else 0
+    if growth_rate > 8:
+        trend = 'Growing'
+    elif growth_rate < -8:
+        trend = 'Declining'
+    else:
+        trend = 'Stable'
+
+    recommendations = {
+        'Growing': [
+            'Increase inventory and fulfillment capacity ahead of demand spikes.',
+            'Double down on the channels responsible for the recent lift.',
+            'Protect margins while scaling with targeted upsells.'
+        ],
+        'Declining': [
+            'Review the weakest acquisition channel and pause low-performing spend.',
+            'Re-engage recent customers with targeted offers or retention campaigns.',
+            'Audit pricing, product mix, and seasonality before making bigger cuts.'
+        ],
+        'Stable': [
+            'Experiment with one new growth channel while keeping core demand steady.',
+            'Use promotions selectively to avoid flattening margins.',
+            'Track repeat purchase behavior to create the next growth lever.'
+        ]
+    }
+
+    return {
+        'series': [round(value, 2) for value in series],
+        'forecast': [round(value, 2) for value in forecasts],
+        'lower_bounds': [round(value, 2) for value in lower_bounds],
+        'upper_bounds': [round(value, 2) for value in upper_bounds],
+        'method': method,
+        'trend': trend,
+        'growth_rate': round(growth_rate, 1),
+        'recommendations': recommendations[trend]
+    }
+
+
+def build_sales_analysis_text(sales_analysis):
+    """Create a readable summary from the computed forecast data."""
+    forecast_lines = []
+    for index, value in enumerate(sales_analysis['forecast'], start=1):
+        forecast_lines.append(
+            f"Month +{index}: ${value:,.0f} "
+            f"(range ${sales_analysis['lower_bounds'][index - 1]:,.0f} to ${sales_analysis['upper_bounds'][index - 1]:,.0f})"
+        )
+    recommendations = "\n".join(f"- {item}" for item in sales_analysis['recommendations'])
+    method_label = 'Holt trend smoothing' if sales_analysis['method'] == 'holt-trend' else 'Linear fallback'
+    return (
+        f"Trend: {sales_analysis['trend']} ({sales_analysis['growth_rate']}% change across the provided period)\n"
+        f"Forecast method: {method_label}\n\n"
+        f"Next 3 months:\n" + "\n".join(forecast_lines) + "\n\n"
+        f"Recommendations:\n{recommendations}"
+    )
+
+
+def build_audio_notes_fallback(transcript_text):
+    """Create usable transcript notes even if text generation is unavailable."""
+    sentences = [segment.strip() for segment in re.split(r'(?<=[.!?])\s+', transcript_text) if segment.strip()]
+    summary = sentences[0] if sentences else transcript_text[:180]
+    bullet_source = sentences[1:4] if len(sentences) > 1 else [transcript_text[:160]]
+    bullets = "\n".join(f"- {line}" for line in bullet_source)
+    return (
+        f"Summary:\n{summary}\n\n"
+        f"Key takeaways:\n{bullets}\n\n"
+        "Action items:\n- Review the transcript and confirm the top priority.\n- Assign owners to the key next steps.\n- Follow up with a short written recap."
+    )
+
+
+def read_uploaded_text_file(file_storage):
+    """Extract text from a supported uploaded transcript file."""
+    filename = (file_storage.filename or '').strip()
+    extension = os.path.splitext(filename.lower())[1]
+    mime_type = (file_storage.mimetype or '').lower()
+
+    if extension not in TEXT_UPLOAD_EXTENSIONS and not any(
+        mime_type.startswith(prefix) for prefix in TEXT_UPLOAD_MIME_PREFIXES
+    ):
+        return None, 'Upload a .txt, .md, or .csv transcript file.'
+
+    file_bytes = file_storage.read()
+    if not file_bytes:
+        return None, 'Uploaded transcript file is empty.'
+
+    decoded = file_bytes.decode('utf-8', errors='ignore')
+    return normalize_user_text(decoded), None
+
+
+def transcribe_audio_bytes(audio_bytes, filename='audio.wav', model='openai/whisper-large-v3'):
+    """Transcribe uploaded audio bytes using Hugging Face ASR."""
+    hf_token = get_hf_token()
+    if not hf_token:
+        return None, 'HF_TOKEN is missing, so server-side audio transcription is unavailable.'
+
+    if not audio_bytes:
+        return None, 'Uploaded audio file is empty.'
+
+    if len(audio_bytes) > MAX_AUDIO_UPLOAD_BYTES:
+        return None, 'Audio file is too large. Please keep uploads under 15 MB.'
+
+    try:
+        from huggingface_hub import InferenceClient
+    except Exception:
+        return None, 'huggingface_hub is not installed. Restart after installing requirements.'
+
+    try:
+        client = InferenceClient(provider="hf-inference", api_key=hf_token)
+        suffix = os.path.splitext(filename or 'audio.wav')[1] or '.wav'
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_audio:
+            temp_audio.write(audio_bytes)
+            temp_path = temp_audio.name
+
+        try:
+            result = client.automatic_speech_recognition(audio=temp_path, model=model)
+        finally:
+            try:
+                os.remove(temp_path)
+            except OSError:
+                pass
+
+        if isinstance(result, str):
+            transcript = result
+        else:
+            transcript = getattr(result, 'text', '') or result.get('text', '')
+
+        transcript = normalize_user_text(transcript)
+        if not transcript:
+            return None, 'The audio was processed, but no transcript text was returned.'
+        return transcript, None
+    except Exception as exc:
+        return None, f'Audio transcription failed: {str(exc)}'
 
 
 def build_aspect_ratio(width, height):
@@ -136,7 +561,28 @@ def find_image_url(payload):
     return None
 
 
-def save_image_to_static(static_folder, image_source, content_type='image/png'):
+def make_image_cache_key(prompt, width, height):
+    """Generate a stable hash for repeated image requests."""
+    raw = f"{normalize_user_text(prompt)}|{width}|{height}".encode('utf-8')
+    return hashlib.sha256(raw).hexdigest()[:24]
+
+
+def find_cached_image_url(static_folder, prompt, width, height):
+    """Return an existing generated image URL when the same request was already created."""
+    cache_key = make_image_cache_key(prompt, width, height)
+    generated_dir = os.path.join(static_folder, 'generated')
+    if not os.path.isdir(generated_dir):
+        return None
+
+    for extension in ('png', 'jpg', 'jpeg', 'webp'):
+        filename = f"generated_{cache_key}.{extension}"
+        filepath = os.path.join(generated_dir, filename)
+        if os.path.exists(filepath):
+            return f"/static/generated/{filename}"
+    return None
+
+
+def save_image_to_static(static_folder, image_source, content_type='image/png', cache_key=None):
     """Persist generated images to /static/generated and return a browser-friendly URL."""
     generated_dir = os.path.join(static_folder, 'generated')
     os.makedirs(generated_dir, exist_ok=True)
@@ -163,8 +609,10 @@ def save_image_to_static(static_folder, image_source, content_type='image/png'):
     else:
         raise ValueError('Unsupported image payload format.')
 
-    filename = f"generated_{uuid4().hex}.{extension}"
+    filename = f"generated_{cache_key or uuid4().hex}.{extension}"
     filepath = os.path.join(generated_dir, filename)
+    if cache_key and os.path.exists(filepath):
+        return f"/static/generated/{filename}"
     with open(filepath, 'wb') as image_file:
         image_file.write(image_bytes)
 

@@ -10,6 +10,16 @@ def home():
     return render_template('index.html')
 
 
+@pages_bp.route('/getting-started')
+def getting_started():
+    return render_template('getting_started.html')
+
+
+@pages_bp.route('/faq')
+def faq():
+    return render_template('faq.html')
+
+
 @pages_bp.route('/content-writer')
 @login_required
 def content_writer():

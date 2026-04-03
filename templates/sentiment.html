@@ -101,6 +101,47 @@
             font-weight: bold;
         }
 
+        .signal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .signal-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .signal-card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .emotion-value {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .keyword-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .keyword-chip {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #111;
+            border: 1px solid #333;
+            color: #ddd;
+            font-size: 13px;
+        }
+
         .sentiment-bar {
             width: 100%;
             height: 20px;
@@ -279,10 +320,27 @@
                     <div class="label">Subjectivity</div>
                     <div class="value" id="subjectivityScore" style="color:#764ba2;">-</div>
                 </div>
+                <div class="score-card">
+                    <div class="label">Confidence</div>
+                    <div class="value" id="confidenceScore" style="color:#9C27B0;">-</div>
+                </div>
             </div>
 
             <div class="sentiment-bar">
                 <div class="sentiment-fill" id="sentimentBar"></div>
+            </div>
+
+            <div class="signal-grid">
+                <div class="signal-card">
+                    <h4>Detected Emotion</h4>
+                    <div class="emotion-value" id="emotionValue">-</div>
+                </div>
+                <div class="signal-card">
+                    <h4>Top Keywords</h4>
+                    <div class="keyword-list" id="keywordList">
+                        <span class="keyword-chip">No keywords yet</span>
+                    </div>
+                </div>
             </div>
 
             <div class="ai-analysis">
@@ -336,7 +394,7 @@
             list.innerHTML = items.map((item) => `
                 <div class="history-item">
                     <div class="history-meta">
-                        <span>${item.meta?.label || 'Analysis'}</span>
+                        <span>${item.meta?.label || 'Analysis'}${item.meta?.emotion ? ` • ${item.meta.emotion}` : ''}</span>
                         <span>${formatDate(item.created_at)}</span>
                     </div>
                     <div class="history-review">${item.input_text}</div>
@@ -395,6 +453,13 @@
                     document.getElementById('sentimentLabel').style.color = data.color;
                     document.getElementById('polarityScore').textContent = data.polarity;
                     document.getElementById('subjectivityScore').textContent = data.subjectivity;
+                    document.getElementById('confidenceScore').textContent = `${Math.round((data.confidence || 0) * 100)}%`;
+                    document.getElementById('emotionValue').textContent = data.emotion || 'Neutral';
+
+                    const keywords = data.top_keywords || [];
+                    document.getElementById('keywordList').innerHTML = keywords.length
+                        ? keywords.map((keyword) => `<span class="keyword-chip">${keyword}</span>`).join('')
+                        : '<span class="keyword-chip">No keywords detected</span>';
 
                     const barWidth = ((data.polarity + 1) / 2) * 100;
                     document.getElementById('sentimentBar').style.width = barWidth + '%';

@@ -1,0 +1,97 @@
+{% extends "tool_base.html" %}
+
+{% block title %}Getting Started - BizGenius AI{% endblock %}
+{% block heading %}Getting Started{% endblock %}
+{% block subtitle %}A quick path to your first useful result in BizGenius AI{% endblock %}
+
+{% block extra_css %}
+        .guide-grid {
+            display: grid;
+            gap: 18px;
+        }
+
+        .guide-card {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 18px;
+            padding: 24px;
+        }
+
+        .guide-card h3 {
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .guide-card p,
+        .guide-card li {
+            color: #b9b9b9;
+            line-height: 1.7;
+        }
+
+        .guide-card ul {
+            margin-left: 18px;
+        }
+
+        .quick-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .quick-links a {
+            padding: 10px 16px;
+            border-radius: 999px;
+            text-decoration: none;
+            border: 1px solid #333;
+            color: #d9d9d9;
+            background: #161616;
+        }
+
+        .quick-links a:hover {
+            border-color: #667eea;
+            color: #fff;
+        }
+{% endblock %}
+
+{% block body %}
+    <div class="guide-grid">
+        <div class="guide-card">
+            <h3>1. Create or log into your account</h3>
+            <p>BizGenius AI saves your history, applies your daily quota, and keeps your tools connected through your account.</p>
+            <div class="quick-links">
+                {% if current_user.is_authenticated %}
+                <a href="/dashboard">Open Dashboard</a>
+                {% else %}
+                <a href="/register">Create Account</a>
+                <a href="/login">Login</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="guide-card">
+            <h3>2. Start with one of the core tools</h3>
+            <ul>
+                <li>Use Content Writer for marketing emails, proposals, and product copy.</li>
+                <li>Use Image Generator for logos, banners, posters, and branded visuals.</li>
+                <li>Use Chatbot for strategy questions and quick business advice.</li>
+                <li>Use Audio Tools for podcast scripts, notes, and transcript processing.</li>
+            </ul>
+            <div class="quick-links">
+                <a href="/content-writer">Content Writer</a>
+                <a href="/image-generator">Image Generator</a>
+                <a href="/audio-tools">Audio Tools</a>
+            </div>
+        </div>
+
+        <div class="guide-card">
+            <h3>3. Save, revisit, and export your work</h3>
+            <p>Your recent generations are stored in history panels and in your dashboard. You can also export saved work from the dashboard in plain text or JSON format.</p>
+        </div>
+
+        <div class="guide-card">
+            <h3>4. Use the fallbacks built into the app</h3>
+            <p>If image generation providers are busy, the app now retries across providers and reuses cached images when the same prompt was already generated. Audio tools also support transcript-file uploads when direct browser speech tools are not enough.</p>
+        </div>
+    </div>
+{% endblock %}

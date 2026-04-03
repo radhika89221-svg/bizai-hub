@@ -35,15 +35,7 @@ def write_history_store(payload):
 def save_history_entry(tool, input_text, output_text='', meta=None):
     """Persist a generated result for later viewing in the UI."""
     if current_user.is_authenticated:
-        entry = HistoryEntry(
-            user_id=current_user.id,
-            tool=tool,
-            input_text=input_text,
-            output_text=output_text,
-            meta_json=meta or {}
-        )
-        db.session.add(entry)
-        db.session.commit()
+        save_history_entry_for_user(current_user.id, tool, input_text, output_text, meta)
         return
 
     payload = read_history_store()
@@ -58,6 +50,19 @@ def save_history_entry(tool, input_text, output_text='', meta=None):
     })
     payload['items'] = payload['items'][-200:]
     write_history_store(payload)
+
+
+def save_history_entry_for_user(user_id, tool, input_text, output_text='', meta=None):
+    """Persist a generated result for a specific authenticated user."""
+    entry = HistoryEntry(
+        user_id=user_id,
+        tool=tool,
+        input_text=input_text,
+        output_text=output_text,
+        meta_json=meta or {}
+    )
+    db.session.add(entry)
+    db.session.commit()
 
 
 def fetch_history_entries(tool, limit=10):

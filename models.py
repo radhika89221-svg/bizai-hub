@@ -50,3 +50,24 @@ class HistoryEntry(db.Model):
     output_text = db.Column(db.Text, nullable=True)
     meta_json = db.Column(db.JSON, nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
+
+
+class ImageJob(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    prompt = db.Column(db.Text, nullable=False)
+    width = db.Column(db.Integer, nullable=False)
+    height = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='queued', index=True)
+    progress_pct = db.Column(db.Integer, nullable=False, default=0)
+    status_message = db.Column(db.String(255), nullable=True)
+    image_url = db.Column(db.Text, nullable=True)
+    provider = db.Column(db.String(80), nullable=True)
+    error_message = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, server_default=db.func.now(), nullable=False)
+    updated_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        onupdate=db.func.now(),
+        nullable=False
+    )

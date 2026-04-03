@@ -247,6 +247,8 @@
             <li><a href="/chatbot" class="{% if request.path == '/chatbot' %}active{% endif %}">Chatbot</a></li>
             <li><a href="/sentiment" class="{% if request.path == '/sentiment' %}active{% endif %}">Sentiment</a></li>
             <li><a href="/sales-predictor" class="{% if request.path == '/sales-predictor' %}active{% endif %}">Sales Predictor</a></li>
+            <li><a href="/getting-started" class="{% if request.path == '/getting-started' %}active{% endif %}">Getting Started</a></li>
+            <li><a href="/faq" class="{% if request.path == '/faq' %}active{% endif %}">FAQ</a></li>
             {% if current_user.is_authenticated %}
             <li><a href="/dashboard" class="{% if request.path == '/dashboard' %}active{% endif %}">Dashboard</a></li>
             <li>

@@ -145,6 +145,13 @@
             color: white;
         }
 
+        .result-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
         .history-section {
             background: #111;
             border: 1px solid #222;
@@ -228,6 +235,13 @@
             overflow: auto;
         }
 
+        .mini-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
         .form-section { padding: 25px; }
 {% endblock %}
 
@@ -272,9 +286,13 @@
     <div class="status-box" id="statusBox"></div>
 
     <div class="result-section" id="resultSection">
-        <h3>Generated Content</h3>
+        <h3 id="resultHeading">Generated Content</h3>
         <div class="result-content" id="resultContent"></div>
-        <button class="copy-btn" onclick="copyContent()">Copy to Clipboard</button>
+        <div class="result-actions">
+            <button class="copy-btn" onclick="copyContent()">Copy to Clipboard</button>
+            <button class="copy-btn" onclick="generateVariation('variation')">Create Variation</button>
+            <button class="copy-btn" onclick="generateVariation('rewrite')">Rewrite Draft</button>
+        </div>
     </div>
 
     <div class="history-section">
@@ -293,6 +311,10 @@
 
 {% block scripts %}
     <script>
+        let contentHistoryItems = [];
+        let lastPayload = null;
+        let lastGeneratedOutput = '';
+
         function formatDate(value) {
             const date = new Date(value.replace(' ', 'T'));
             return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
@@ -313,20 +335,25 @@
         }
 
         function renderHistory(items) {
+            contentHistoryItems = items;
             const list = document.getElementById('historyList');
             if (!items.length) {
                 list.innerHTML = '<div class="history-empty">No saved generations yet.</div>';
                 return;
             }
 
-            list.innerHTML = items.map((item) => `
+            list.innerHTML = items.map((item, index) => `
                 <div class="history-item">
                     <div class="history-meta">
-                        <span>${item.meta?.content_type || 'Generated content'}</span>
+                        <span>${item.meta?.content_type || 'Generated content'}${item.meta?.version_number ? ` • v${item.meta.version_number}` : ''}</span>
                         <span>${formatDate(item.created_at)}</span>
                     </div>
                     <div class="history-input">${item.input_text}</div>
                     <div class="history-output">${item.output_text}</div>
+                    <div class="mini-actions">
+                        <button class="history-btn" onclick="reuseHistory(${index}, 'fresh')">Use Again</button>
+                        <button class="history-btn" onclick="reuseHistory(${index}, 'variation')">Variation</button>
+                    </div>
                 </div>
             `).join('');
         }
@@ -358,10 +385,10 @@
             }
         }
 
-        async function generateContent() {
-            const contentType = document.getElementById('contentType').value;
-            const topic = document.getElementById('topic').value.trim();
-            const details = document.getElementById('details').value.trim();
+        async function generateContent(mode = 'fresh', historyItem = null) {
+            const contentType = historyItem?.meta?.content_type || document.getElementById('contentType').value;
+            const topic = historyItem?.input_text || document.getElementById('topic').value.trim();
+            const details = historyItem?.meta?.details || document.getElementById('details').value.trim();
 
             if (!topic) {
                 showStatus('Please enter a topic.');
@@ -375,18 +402,31 @@
             document.getElementById('resultSection').style.display = 'none';
 
             try {
+                const payload = {
+                    content_type: contentType,
+                    topic: topic,
+                    details: details,
+                    variation_mode: mode,
+                    previous_output: mode === 'fresh' ? '' : (historyItem?.output_text || lastGeneratedOutput || '')
+                };
+
                 const response = await fetch('/api/generate-content', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        content_type: contentType,
-                        topic: topic + (details ? '. Additional details: ' + details : '')
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
 
                 if (data.success) {
+                    document.getElementById('contentType').value = contentType;
+                    document.getElementById('topic').value = topic;
+                    document.getElementById('details').value = details;
+                    lastPayload = payload;
+                    lastGeneratedOutput = data.result;
+                    document.getElementById('resultHeading').textContent = data.version_number
+                        ? `Generated Content • Version ${data.version_number}`
+                        : 'Generated Content';
                     document.getElementById('resultContent').textContent = data.result;
                     document.getElementById('resultSection').style.display = 'block';
                     loadHistory();
@@ -399,6 +439,20 @@
 
             document.getElementById('loading').style.display = 'none';
             document.getElementById('generateBtn').disabled = false;
+        }
+
+        function generateVariation(mode) {
+            if (!lastPayload) {
+                showStatus('Generate content once first, then create a variation.');
+                return;
+            }
+            generateContent(mode);
+        }
+
+        function reuseHistory(index, mode) {
+            const item = contentHistoryItems[index];
+            if (!item) return;
+            generateContent(mode, item);
         }
 
         function copyContent() {
